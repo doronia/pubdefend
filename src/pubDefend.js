@@ -48,26 +48,6 @@ var init = function () {
 	}, 100);
 };
 
-var arrayIterator = function (options) {
-	//var r = Object.prototype.toString.call(n).slice(8, -1);
-	const obj = options;
-
-	if (isObject(obj) && Object.keys(obj).length > 0) {
-		console.log("options length:", Object.keys(obj).length);
-	}
-
-	if (!options || options.length == 0) return;
-	/* var o = options;
-    for (var i = 0; i < o.length; i++) {
-        console.log('o:', o[i], 'length:', o.length)
-    } */
-
-	//options.forEach(options => console.log(options));
-};
-
-var QueuePush = function (arr, item) {};
-
-// Automatic instances creation if required (useful for async script loading)
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
 		var _property = {};
@@ -85,18 +65,6 @@ if (runningOnBrowser && !isBot) {
 		store(_store, "mobile", isMobile);
 
 		loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
-
-		/* window.addEventListener('load', (event) => {
-            if ("undefined" != typeof window.adsbygoogle) {
-                _gtag();
-                console.log('adsense loaded');
-            }
-
-            if ("undefined" != typeof window.googletag) {
-                ready();
-                console.log('googletag loaded');
-            }
-        }, false); */
 
 		init();
 	});

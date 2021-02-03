@@ -454,7 +454,7 @@ var pubdefend = (function () {
       });
     };
 
-    var getBrowserFingerprint = function getBrowserFingerprint(hardwareOnly, callback) {
+    var getFingerprint = function getFingerprint(hardwareOnly, callback) {
       var _window$navigator = window.navigator,
           userAgent = _window$navigator.userAgent,
           language = _window$navigator.language,
@@ -478,10 +478,8 @@ var pubdefend = (function () {
 
       var canvas = function () {
         try {
-          var _canvas = document.createElement("canvas");
-
-          var ctx = _canvas.getContext("2d");
-
+          var canvas = document.createElement("canvas");
+          var ctx = canvas.getContext("2d");
           ctx.textBaseline = "top";
           ctx.font = "14px 'Arial'";
           ctx.textBaseline = "alphabetic";
@@ -491,10 +489,8 @@ var pubdefend = (function () {
           ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 2, 15);
           ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
           ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 4, 17);
-
-          var _result = _canvas.toDataURL();
-
-          return _result;
+          var result = canvas.toDataURL();
+          return result;
         } catch (error) {
           return error;
         }
@@ -592,25 +588,27 @@ var pubdefend = (function () {
       return result;
     };
 
-    var fpHardware = getBrowserFingerprint(true);
-    var fpExtend = getBrowserFingerprint(false);
+    var fpHardware = getFingerprint(true);
+    var fpExtend = getFingerprint(false);
 
-    var _store$1 = pd.store;
     //Promise.resolve(32).then(x => console.log(x));
 
     pd.testcookie = testcookie;
     pd.getStore = getStore;
     var w = window,
         g = w.googletag ? w.googletag : false;
+    var _store$1 = pd.store;
     /* AD blocker bait  */
 
     var testBait = bait(function (data) {
       store(_store$1, "blocked", data);
     });
-    _store$1.fp = {};
-    _store$1.fp.hardware = fpHardware;
-    _store$1.fp.extend = fpExtend;
-    store(_store$1, "fingerprint", _store$1.fp);
+    /* fingerprints */
+
+    var fingerprint = {};
+    fingerprint.hardware = fpHardware;
+    fingerprint.extend = fpExtend;
+    store(_store$1, "fingerprint", fingerprint);
 
     var init = function init() {
       var apiReady = setInterval(function () {
@@ -646,7 +644,7 @@ var pubdefend = (function () {
                       _gtag();
                       console.log('adsense loaded');
                   }
-                    if ("undefined" != typeof window.googletag) {
+                   if ("undefined" != typeof window.googletag) {
                       ready();
                       console.log('googletag loaded');
                   }

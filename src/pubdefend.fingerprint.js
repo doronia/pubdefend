@@ -1,14 +1,14 @@
-const getBrowserFingerprint = function (hardwareOnly, callback) {
-	const { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
-	const plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
-	const { colorDepth, availWidth, availHeight } = window.screen;
-	const timezoneOffset = new Date().getTimezoneOffset();
-	const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
-	const touchSupport = "ontouchstart" in window;
-	const canvas = (() => {
+var getFingerprint = function (hardwareOnly, callback) {
+	var { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
+	var plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
+	var { colorDepth, availWidth, availHeight } = window.screen;
+	var timezoneOffset = new Date().getTimezoneOffset();
+	var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+	var touchSupport = "ontouchstart" in window;
+	var canvas = (function () {
 		try {
-			const canvas = document.createElement("canvas");
-			const ctx = canvas.getContext("2d");
+			var canvas = document.createElement("canvas");
+			var ctx = canvas.getContext("2d");
 			ctx.textBaseline = "top";
 			ctx.font = "14px 'Arial'";
 			ctx.textBaseline = "alphabetic";
@@ -19,14 +19,14 @@ const getBrowserFingerprint = function (hardwareOnly, callback) {
 			ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
 			ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 4, 17);
 
-			const result = canvas.toDataURL();
+			var result = canvas.toDataURL();
 			return result;
 		} catch (error) {
 			return error;
 		}
 	})();
 
-	const data = hardwareOnly
+	var data = hardwareOnly
 		? JSON.stringify({
 				platform,
 				hardwareConcurrency,
@@ -54,11 +54,11 @@ const getBrowserFingerprint = function (hardwareOnly, callback) {
 				canvas,
 		  });
 
-	const murmurhash3_32_gc = (key) => {
-		const remainder = key.length & 3; // key.length % 4
-		const bytes = key.length - remainder;
-		const c1 = 0xcc9e2d51;
-		const c2 = 0x1b873593;
+	var murmurhash3_32_gc = (key) => {
+		var remainder = key.length & 3; // key.length % 4
+		var bytes = key.length - remainder;
+		var c1 = 0xcc9e2d51;
+		var c2 = 0x1b873593;
 
 		let h1, h1b, k1;
 
@@ -76,7 +76,7 @@ const getBrowserFingerprint = function (hardwareOnly, callback) {
 			h1 = (h1b & 0xffff) + 0x6b64 + ((((h1b >>> 16) + 0xe654) & 0xffff) << 16);
 		}
 
-		const i = bytes - 1;
+		var i = bytes - 1;
 
 		k1 = 0;
 
@@ -111,7 +111,7 @@ const getBrowserFingerprint = function (hardwareOnly, callback) {
 		return h1 >>> 0;
 	};
 
-	const result = murmurhash3_32_gc(data);
+	var result = murmurhash3_32_gc(data);
 
 	if (callback) {
 		callback(result);
@@ -121,5 +121,5 @@ const getBrowserFingerprint = function (hardwareOnly, callback) {
 	return result;
 };
 
-export var fpHardware = getBrowserFingerprint(true);
-export var fpExtend = getBrowserFingerprint(false);
+export var fpHardware = getFingerprint(true);
+export var fpExtend = getFingerprint(false);

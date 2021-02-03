@@ -1,4 +1,3 @@
-var _store = pd.store;
 import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
 
@@ -20,6 +19,8 @@ var w = window,
 	g = w.googletag ? w.googletag : false,
 	d = document;
 
+var _store = pd.store;
+
 /* AD blocker bait  */
 var testBait = bait(function (data) {
 	store(_store, "blocked", data);
@@ -31,10 +32,11 @@ var options = {
 	V: "advertisement",
 };
 
-_store.fp = {};
-_store.fp.hardware = fpHardware;
-_store.fp.extend = fpExtend;
-store(_store, "fingerprint", _store.fp);
+/* fingerprints */
+var fingerprint = {};
+fingerprint.hardware = fpHardware;
+fingerprint.extend = fpExtend;
+store(_store, "fingerprint", fingerprint);
 
 var init = function () {
 	var apiReady = setInterval(function () {

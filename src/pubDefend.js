@@ -9,8 +9,10 @@ import { testcookie, store, getStore } from "./pubdefend.events";
 import { gtagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
 
-/* Promise IE */
+/* Polyfills*/
 //import 'core-js/features/promise';
+//import "core-js/features//object/entries";
+
 //Promise.resolve(32).then(x => console.log(x));
 
 pd.testcookie = testcookie;
@@ -45,12 +47,21 @@ if (runningOnBrowser && !isBot) {
 			store(_store, "blocked", data);
 		});
 
-		/* fingerprints */
+		/**
+		 *  Browser Fingerprints.
+		 *  TODO:
+		 *  - follow changes in the fingerprints
+		 */
 		var fingerprint = {};
 		fingerprint.hardware = fpHardware;
 		fingerprint.extend = fpExtend;
 		store(_store, "fingerprint", fingerprint);
 
+		/**
+		 *  publisher properties.
+		 *  TODO:
+		 * 	- validate domaian indexof hostname
+		 */
 		var _property = {};
 		_property.hostname = getHostName(location.hostname);
 		_property.domain = pd.domain;
@@ -65,6 +76,11 @@ if (runningOnBrowser && !isBot) {
 		store(_store, "browser", _browser);
 		store(_store, "mobile", isMobile);
 
+		/**
+		 * Load Paho mqtt lib.
+		 * TODO:
+		 * - create instance of Paho class and raise event to start websocket connection and send method
+		 */
 		loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
 
 		init();

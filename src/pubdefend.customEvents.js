@@ -25,54 +25,69 @@ var EVENTS = {};
  * @param {Object} detail
  */
 function _dispatchEvent(eventName, detail) {
-    var event = new CustomEvent(eventName, {
-        detail: detail
-    });
+	var event = new CustomEvent(eventName, {
+		detail: detail,
+	});
 
-    TARGET.dispatchEvent(event);
+	TARGET.dispatchEvent(event);
 }
 
 function _CustomEventPolyfill() {
-    if (typeof window.CustomEvent === 'function') {
-        return;
-    }
+	if (typeof window.CustomEvent === "function") {
+		return;
+	}
 
-    function CustomEvent(event, params) {
-        var evt = document.createEvent('CustomEvent');
+	function CustomEvent(event, params) {
+		var evt = document.createEvent("CustomEvent");
 
-        params = params || { bubbles: false, cancelable: false, detail: undefined };
-        evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
+		params = params || { bubbles: false, cancelable: false, detail: undefined };
+		evt.initCustomEvent(event, params.bubbles, params.cancelable, params.detail);
 
-        return evt;
-    }
+		return evt;
+	}
 
-    CustomEvent.prototype = window.Event.prototype;
-    window.CustomEvent = CustomEvent;
+	CustomEvent.prototype = window.Event.prototype;
+	window.CustomEvent = CustomEvent;
 }
 
 module.exports = {
-    /**
-     * @param {String} eventName
-     * @param {Function} callback
-     */
-    on: function(eventName, callback) {
-        EVENTS[eventName] = callback;
-        TARGET.addEventListener(eventName, callback);
-    },
+	/**
+	 * @param {String} eventName
+	 * @param {Function} callback
+	 */
+	on: function (eventName, callback) {
+		EVENTS[eventName] = callback;
+		TARGET.addEventListener(eventName, callback);
+	},
 
-    /**
-     * @param {String} eventName
-     */
-    off: function(eventName) {
-        TARGET.removeEventListener(eventName, EVENTS[eventName]);
-        delete EVENTS[eventName];
-    },
+	/**
+	 * @param {String} eventName
+	 */
+	off: function (eventName) {
+		TARGET.removeEventListener(eventName, EVENTS[eventName]);
+		delete EVENTS[eventName];
+	},
 
-    /**
-     * @param {String} eventName
-     * @param {Object} detail
-     */
-    dispatch: function(eventName, detail) {
-        _dispatchEvent(eventName, detail || null);
-    }
-}
+	/**
+	 * @param {String} eventName
+	 * @param {Object} detail
+	 */
+	dispatch: function (eventName, detail) {
+		_dispatchEvent(eventName, detail || null);
+	},
+};
+
+export var createInstance = function (classObj, options) {
+	var event;
+	let eventString = "LazyLoad::Initialized";
+	let instance = new classObj(options);
+	try {
+		// Works in modern browsers
+		event = new CustomEvent(eventString, { detail: { instance } });
+	} catch (err) {
+		// Works in Internet Explorer (all versions)
+		event = document.createEvent("CustomEvent");
+		event.initCustomEvent(eventString, false, false, { instance });
+	}
+	window.dispatchEvent(event);
+};

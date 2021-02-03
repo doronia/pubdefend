@@ -55,10 +55,35 @@ export function murmurhash3_32_gc(key) {
 	return h1 >>> 0;
 }
 
+function entriesPolyFill(obj) {
+	return Object.keys(obj).reduce(function (arr, key) {
+		arr.push([key, obj[key]]);
+		return arr;
+	}, []);
+}
+
+export var entries = Object.entries ? Object.entries : entriesPolyFill;
+
 var getFingerprint = function (hardwareOnly, callback) {
-	var { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
-	var plugins = Object.entries(window.navigator.plugins).map(([, plugin]) => plugin.name);
-	var { colorDepth, availWidth, availHeight } = window.screen;
+	/**
+	 * var { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
+	 *  var { colorDepth, availWidth, availHeight } = window.screen;
+	 * */
+
+	var w = window;
+	var s = w.screen;
+	var userAgent = w.userAgent,
+		language = w.language,
+		languages = w.languages,
+		platform = w.platform,
+		hardwareConcurrency = w.hardwareConcurrency,
+		deviceMemory = w.deviceMemory,
+		colorDepth = s.colorDepth,
+		availHeight = s.availHeight,
+		availWidth = s.availWidth;
+
+	var plugins = entries(w.navigator.plugins).map(([, plugin]) => plugin.name);
+
 	var timezoneOffset = new Date().getTimezoneOffset();
 	var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 	var touchSupport = "ontouchstart" in window;

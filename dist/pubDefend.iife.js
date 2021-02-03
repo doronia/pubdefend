@@ -100,6 +100,62 @@ var pubdefend = (function () {
       return _typeof(obj);
     }
 
+    function _slicedToArray(arr, i) {
+      return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+    }
+
+    function _arrayWithHoles(arr) {
+      if (Array.isArray(arr)) return arr;
+    }
+
+    function _iterableToArrayLimit(arr, i) {
+      if (typeof Symbol === "undefined" || !(Symbol.iterator in Object(arr))) return;
+      var _arr = [];
+      var _n = true;
+      var _d = false;
+      var _e = undefined;
+
+      try {
+        for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) {
+          _arr.push(_s.value);
+
+          if (i && _arr.length === i) break;
+        }
+      } catch (err) {
+        _d = true;
+        _e = err;
+      } finally {
+        try {
+          if (!_n && _i["return"] != null) _i["return"]();
+        } finally {
+          if (_d) throw _e;
+        }
+      }
+
+      return _arr;
+    }
+
+    function _unsupportedIterableToArray(o, minLen) {
+      if (!o) return;
+      if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+      var n = Object.prototype.toString.call(o).slice(8, -1);
+      if (n === "Object" && o.constructor) n = o.constructor.name;
+      if (n === "Map" || n === "Set") return Array.from(o);
+      if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+    }
+
+    function _arrayLikeToArray(arr, len) {
+      if (len == null || len > arr.length) len = arr.length;
+
+      for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+      return arr2;
+    }
+
+    function _nonIterableRest() {
+      throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+    }
+
     /* export const isArray = function(obj) { 
         return Object.prototype.toString.call(obj) === '[object Array]' };
      */
@@ -398,6 +454,147 @@ var pubdefend = (function () {
       });
     };
 
+    var getBrowserFingerprint = function getBrowserFingerprint(hardwareOnly, callback) {
+      var _window$navigator = window.navigator,
+          userAgent = _window$navigator.userAgent,
+          language = _window$navigator.language,
+          languages = _window$navigator.languages,
+          platform = _window$navigator.platform,
+          hardwareConcurrency = _window$navigator.hardwareConcurrency,
+          deviceMemory = _window$navigator.deviceMemory;
+      var plugins = Object.entries(window.navigator.plugins).map(function (_ref) {
+        var _ref2 = _slicedToArray(_ref, 2),
+            plugin = _ref2[1];
+
+        return plugin.name;
+      });
+      var _window$screen = window.screen,
+          colorDepth = _window$screen.colorDepth,
+          availWidth = _window$screen.availWidth,
+          availHeight = _window$screen.availHeight;
+      var timezoneOffset = new Date().getTimezoneOffset();
+      var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      var touchSupport = ("ontouchstart" in window);
+
+      var canvas = function () {
+        try {
+          var _canvas = document.createElement("canvas");
+
+          var ctx = _canvas.getContext("2d");
+
+          ctx.textBaseline = "top";
+          ctx.font = "14px 'Arial'";
+          ctx.textBaseline = "alphabetic";
+          ctx.fillStyle = "#f60";
+          ctx.fillRect(125, 1, 62, 20);
+          ctx.fillStyle = "#069";
+          ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 2, 15);
+          ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
+          ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 4, 17);
+
+          var _result = _canvas.toDataURL();
+
+          return _result;
+        } catch (error) {
+          return error;
+        }
+      }();
+
+      var data = hardwareOnly ? JSON.stringify({
+        platform: platform,
+        hardwareConcurrency: hardwareConcurrency,
+        deviceMemory: deviceMemory,
+        colorDepth: colorDepth,
+        availWidth: availWidth,
+        availHeight: availHeight,
+        touchSupport: touchSupport,
+        canvas: canvas
+      }) : JSON.stringify({
+        userAgent: userAgent,
+        language: language,
+        languages: languages,
+        platform: platform,
+        hardwareConcurrency: hardwareConcurrency,
+        deviceMemory: deviceMemory,
+        plugins: plugins,
+        colorDepth: colorDepth,
+        availWidth: availWidth,
+        availHeight: availHeight,
+        timezoneOffset: timezoneOffset,
+        timezone: timezone,
+        touchSupport: touchSupport,
+        canvas: canvas
+      });
+
+      var murmurhash3_32_gc = function murmurhash3_32_gc(key) {
+        var remainder = key.length & 3; // key.length % 4
+
+        var bytes = key.length - remainder;
+        var c1 = 0xcc9e2d51;
+        var c2 = 0x1b873593;
+        var h1, h1b, k1;
+
+        for (var _i = 0; _i < bytes; _i++) {
+          k1 = key.charCodeAt(_i) & 0xff | (key.charCodeAt(++_i) & 0xff) << 8 | (key.charCodeAt(++_i) & 0xff) << 16 | (key.charCodeAt(++_i) & 0xff) << 24;
+          ++_i;
+          k1 = (k1 & 0xffff) * c1 + (((k1 >>> 16) * c1 & 0xffff) << 16) & 0xffffffff;
+          k1 = k1 << 15 | k1 >>> 17;
+          k1 = (k1 & 0xffff) * c2 + (((k1 >>> 16) * c2 & 0xffff) << 16) & 0xffffffff;
+          h1 ^= k1;
+          h1 = h1 << 13 | h1 >>> 19;
+          h1b = (h1 & 0xffff) * 5 + (((h1 >>> 16) * 5 & 0xffff) << 16) & 0xffffffff;
+          h1 = (h1b & 0xffff) + 0x6b64 + (((h1b >>> 16) + 0xe654 & 0xffff) << 16);
+        }
+
+        var i = bytes - 1;
+        k1 = 0;
+
+        switch (remainder) {
+          case 3:
+            {
+              k1 ^= (key.charCodeAt(i + 2) & 0xff) << 16;
+              break;
+            }
+
+          case 2:
+            {
+              k1 ^= (key.charCodeAt(i + 1) & 0xff) << 8;
+              break;
+            }
+
+          case 1:
+            {
+              k1 ^= key.charCodeAt(i) & 0xff;
+              break;
+            }
+        }
+
+        k1 = (k1 & 0xffff) * c1 + (((k1 >>> 16) * c1 & 0xffff) << 16) & 0xffffffff;
+        k1 = k1 << 15 | k1 >>> 17;
+        k1 = (k1 & 0xffff) * c2 + (((k1 >>> 16) * c2 & 0xffff) << 16) & 0xffffffff;
+        h1 ^= k1;
+        h1 ^= key.length;
+        h1 ^= h1 >>> 16;
+        h1 = (h1 & 0xffff) * 0x85ebca6b + (((h1 >>> 16) * 0x85ebca6b & 0xffff) << 16) & 0xffffffff;
+        h1 ^= h1 >>> 13;
+        h1 = (h1 & 0xffff) * 0xc2b2ae35 + (((h1 >>> 16) * 0xc2b2ae35 & 0xffff) << 16) & 0xffffffff;
+        h1 ^= h1 >>> 16;
+        return h1 >>> 0;
+      };
+
+      var result = murmurhash3_32_gc(data);
+
+      if (callback) {
+        callback(result);
+        return;
+      }
+
+      return result;
+    };
+
+    var fpHardware = getBrowserFingerprint(true);
+    var fpExtend = getBrowserFingerprint(false);
+
     var _store$1 = pd.store;
     //Promise.resolve(32).then(x => console.log(x));
 
@@ -408,20 +605,17 @@ var pubdefend = (function () {
     /* AD blocker bait  */
 
     var testBait = bait(function (data) {
-      store(_store$1, 'blocked', data);
+      store(_store$1, "blocked", data);
     });
-    /* function _gtag() {
-        if (g) {
-            console.log(g.apiReady)
-            ready();
-        }
-
-    } */
+    _store$1.fp = {};
+    _store$1.fp.hardware = fpHardware;
+    _store$1.fp.extend = fpExtend;
+    store(_store$1, "fingerprint", _store$1.fp);
 
     var init = function init() {
       var apiReady = setInterval(function () {
         if (g && g.apiReady) {
-          console.log('apiReady:', g && g.apiReady);
+          console.log("apiReady:", g && g.apiReady);
           clearInterval(apiReady);
           gtagHandler();
         }
@@ -442,21 +636,21 @@ var pubdefend = (function () {
         /* Store data */
 
 
-        store(_store$1, 'publisher', _property);
-        store(_store$1, 'sid', _sid);
-        store(_store$1, 'browser', _browser);
-        store(_store$1, 'mobile', isMobile);
-        loadScript('https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js');
+        store(_store$1, "publisher", _property);
+        store(_store$1, "sid", _sid);
+        store(_store$1, "browser", _browser);
+        store(_store$1, "mobile", isMobile);
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
         /* window.addEventListener('load', (event) => {
-            if ("undefined" != typeof window.adsbygoogle) {
-                _gtag();
-                console.log('adsense loaded');
-            }
-              if ("undefined" != typeof window.googletag) {
-                ready();
-                console.log('googletag loaded');
-            }
-        }, false); */
+                  if ("undefined" != typeof window.adsbygoogle) {
+                      _gtag();
+                      console.log('adsense loaded');
+                  }
+                    if ("undefined" != typeof window.googletag) {
+                      ready();
+                      console.log('googletag loaded');
+                  }
+              }, false); */
 
         init();
       });

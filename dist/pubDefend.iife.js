@@ -411,18 +411,18 @@ var pubdefend = (function () {
         solts_req = 0,
         solts_rec = 0;
     function gtagHandler() {
-      console.log('pubdefend:: ready');
+      console.log("pubdefend:: ready");
       var g = googletag.pubads();
       solts_req = g.getSlots().length;
-      store(_store, 'gtag_slots', solts_req);
+      store(_store, "gtag_slots", solts_req);
       /* listenForSlots */
 
       if (!_store.ab) {
-        console.debug('No adblocker detected');
-        g.addEventListener("slotRenderEnded", listenForSlots.bind(null, forEachElemnt), false);
+        console.debug("pubdefend:: No adblocker detected. listen to gtag");
+        g.addEventListener("slotRenderEnded", listenForSlots.bind(null, getSlotsElements), false);
       }
 
-      console.log('slots:', solts_req);
+      console.log("slots:", solts_req);
     }
 
     var listenForSlots = function listenForSlots(callback, event) {
@@ -431,23 +431,23 @@ var pubdefend = (function () {
       var elm = document.getElementById(id);
       var isItVisible = checkIfVisible(elm);
       solts_arr[id] = {
-        'render': true,
-        "visible": isItVisible
+        render: true,
+        visible: isItVisible
       };
-      console.log('Slot', slot.getSlotElementId(), 'finished rendering.'); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
+      console.log("Slot", slot.getSlotElementId(), "finished rendering."); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
       //console.log('solts_arr', solts_arr)
 
       if (solts_rec < solts_req) {
         var gtag_elements = domQuery.find('div[id*="google_ad"]');
         solts_rec = gtag_elements.length;
-        store(_store, 'gtag_impr', solts_rec);
+        store(_store, "gtag_impr", solts_rec);
         if (callback) callback(gtag_elements);
       }
 
-      store(_store, 'slots_arr', solts_arr);
+      store(_store, "slots_arr", solts_arr);
     };
 
-    var forEachElemnt = function forEachElemnt(arr) {
+    var getSlotsElements = function getSlotsElements(arr) {
       if (!isArray()) return;
       arr.forEach(function (val) {
         console.log(val.parentElement.id);
@@ -604,6 +604,8 @@ var pubdefend = (function () {
     var fpHardware = getFingerprint(true);
     var fpExtend = getFingerprint(false);
 
+    /* Promise IE */
+    //import 'core-js/features/promise';
     //Promise.resolve(32).then(x => console.log(x));
 
     pd.testcookie = testcookie;

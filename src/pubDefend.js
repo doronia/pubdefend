@@ -9,6 +9,7 @@ import { testcookie, store, getStore } from "./pubdefend.events";
 import { gtagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
 
+/* Promise IE */
 //import 'core-js/features/promise';
 //Promise.resolve(32).then(x => console.log(x));
 

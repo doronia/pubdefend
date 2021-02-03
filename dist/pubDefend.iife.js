@@ -454,6 +454,18 @@ var pubdefend = (function () {
 	  });
 	};
 
+	/**
+	 * Object.entries
+	 */
+	function entriesPolyFill(obj) {
+	  return Object.keys(obj).reduce(function (arr, key) {
+	    arr.push([key, obj[key]]);
+	    return arr;
+	  }, []);
+	}
+
+	var entries = Object.entries ? Object.entries : entriesPolyFill;
+
 	function murmurhash3_32_gc(key) {
 	  var remainder = key.length & 3; // key.length % 4
 
@@ -510,20 +522,7 @@ var pubdefend = (function () {
 	  return h1 >>> 0;
 	}
 
-	function entriesPolyFill(obj) {
-	  return Object.keys(obj).reduce(function (arr, key) {
-	    arr.push([key, obj[key]]);
-	    return arr;
-	  }, []);
-	}
-
-	var entries = Object.entries ? Object.entries : entriesPolyFill;
-
 	var getFingerprint = function getFingerprint(hardwareOnly, callback) {
-	  /**
-	   * var { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
-	   *  var { colorDepth, availWidth, availHeight } = window.screen;
-	   * */
 	  var w = window;
 	  var s = w.screen;
 	  var userAgent = w.userAgent,
@@ -618,7 +617,6 @@ var pubdefend = (function () {
 
 	/* Polyfills*/
 	//import 'core-js/features/promise';
-	//import "core-js/features//object/entries";
 	//Promise.resolve(32).then(x => console.log(x));
 
 	pd.testcookie = testcookie;
@@ -630,7 +628,7 @@ var pubdefend = (function () {
 	var init = function init() {
 	  var apiReady = setInterval(function () {
 	    if (g && g.apiReady) {
-	      console.log("apiReady:", g && g.apiReady);
+	      console.log("googaltag apiReady:", g && g.apiReady);
 	      clearInterval(apiReady);
 	      gtagHandler();
 	    }
@@ -639,7 +637,7 @@ var pubdefend = (function () {
 
 	if (runningOnBrowser && !isBot) {
 	  documentReady(function () {
-	    /* AD blocker bait  */
+	    /** AD blocker bait  */
 	    var testBait = bait(function (data) {
 	      store(_store$1, "blocked", data);
 	    });
@@ -649,10 +647,11 @@ var pubdefend = (function () {
 	     *  - follow changes in the fingerprints
 	     */
 
-	    var fingerprint = {};
-	    fingerprint.hardware = fpHardware;
-	    fingerprint.extend = fpExtend;
-	    store(_store$1, "fingerprint", fingerprint);
+	    var fp = {};
+	    fp.hardware = fpHardware;
+	    fp.extend = fpExtend;
+	    _store$1.fingerprint = fingerprint;
+	    store(_store$1, "fingerprint", fp);
 	    /**
 	     *  publisher properties.
 	     *  TODO:
@@ -663,20 +662,21 @@ var pubdefend = (function () {
 	    _property.hostname = getHostName(location.hostname);
 	    _property.domain = pd.domain;
 	    _property.pubid = detectPid().id;
+	    store(_store$1, "publisher", _property);
+	    /** generate session id */
 
 	    var _sid = uniqueID();
 
-	    var _browser = detectBrowser();
-	    /* Store data */
-
-
-	    store(_store$1, "publisher", _property);
 	    store(_store$1, "sid", _sid);
+
+	    var _browser = detectBrowser();
+
 	    store(_store$1, "browser", _browser);
-	    store(_store$1, "mobile", isMobile);
+	    store(_store$1, "isMobile", isMobile);
 	    /**
 	     * Load Paho mqtt lib.
 	     * TODO:
+	     * - upload mqttws31.min.js to CDN & change loadScript path with {config endpoints}
 	     * - create instance of Paho class and raise event to start websocket connection and send method
 	     */
 

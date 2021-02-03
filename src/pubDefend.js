@@ -11,8 +11,6 @@ import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
 
 /* Polyfills*/
 //import 'core-js/features/promise';
-//import "core-js/features//object/entries";
-
 //Promise.resolve(32).then(x => console.log(x));
 
 pd.testcookie = testcookie;
@@ -33,7 +31,7 @@ var options = {
 var init = function () {
 	var apiReady = setInterval(function () {
 		if (g && g.apiReady) {
-			console.log("apiReady:", g && g.apiReady);
+			console.log("googaltag apiReady:", g && g.apiReady);
 			clearInterval(apiReady);
 			gtagHandler();
 		}
@@ -42,7 +40,7 @@ var init = function () {
 
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
-		/* AD blocker bait  */
+		/** AD blocker bait  */
 		var testBait = bait(function (data) {
 			store(_store, "blocked", data);
 		});
@@ -52,10 +50,11 @@ if (runningOnBrowser && !isBot) {
 		 *  TODO:
 		 *  - follow changes in the fingerprints
 		 */
-		var fingerprint = {};
-		fingerprint.hardware = fpHardware;
-		fingerprint.extend = fpExtend;
-		store(_store, "fingerprint", fingerprint);
+		var fp = {};
+		fp.hardware = fpHardware;
+		fp.extend = fpExtend;
+		_store.fingerprint = fingerprint;
+		store(_store, "fingerprint", fp);
 
 		/**
 		 *  publisher properties.
@@ -66,19 +65,21 @@ if (runningOnBrowser && !isBot) {
 		_property.hostname = getHostName(location.hostname);
 		_property.domain = pd.domain;
 		_property.pubid = detectPid().id;
-
-		var _sid = uniqueID();
-		var _browser = detectBrowser();
-
-		/* Store data */
 		store(_store, "publisher", _property);
+
+		/** generate session id */
+		var _sid = uniqueID();
 		store(_store, "sid", _sid);
+
+		var _browser = detectBrowser();
 		store(_store, "browser", _browser);
-		store(_store, "mobile", isMobile);
+
+		store(_store, "isMobile", isMobile);
 
 		/**
 		 * Load Paho mqtt lib.
 		 * TODO:
+		 * - upload mqttws31.min.js to CDN & change loadScript path with {config endpoints}
 		 * - create instance of Paho class and raise event to start websocket connection and send method
 		 */
 		loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");

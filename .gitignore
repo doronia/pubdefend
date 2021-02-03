@@ -1,5 +1,6 @@
 # Dependency directories
-node_modules/
 dist/
-temp/
+node_modules/
+static_files/
 stuff/
+temp/

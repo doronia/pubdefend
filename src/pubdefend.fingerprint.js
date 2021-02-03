@@ -1,3 +1,5 @@
+import { entries } from "./pubdefend.polyfills";
+
 export function murmurhash3_32_gc(key) {
 	var remainder = key.length & 3; // key.length % 4
 	var bytes = key.length - remainder;
@@ -55,21 +57,7 @@ export function murmurhash3_32_gc(key) {
 	return h1 >>> 0;
 }
 
-function entriesPolyFill(obj) {
-	return Object.keys(obj).reduce(function (arr, key) {
-		arr.push([key, obj[key]]);
-		return arr;
-	}, []);
-}
-
-export var entries = Object.entries ? Object.entries : entriesPolyFill;
-
 var getFingerprint = function (hardwareOnly, callback) {
-	/**
-	 * var { userAgent, language, languages, platform, hardwareConcurrency, deviceMemory } = window.navigator;
-	 *  var { colorDepth, availWidth, availHeight } = window.screen;
-	 * */
-
 	var w = window;
 	var s = w.screen;
 	var userAgent = w.userAgent,
@@ -100,7 +88,6 @@ var getFingerprint = function (hardwareOnly, callback) {
 			ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 2, 15);
 			ctx.fillStyle = "rgba(102, 204, 0, 0.7)";
 			ctx.fillText("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ`~1!2@3#4$5%6^7&8*9(0)-_=+[{]}|;:',<.>/?", 4, 17);
-
 			var result = canvas.toDataURL();
 			return result;
 		} catch (error) {

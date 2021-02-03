@@ -496,6 +496,18 @@ var pubdefend = (function () {
         }
       }();
 
+      var doNotTrack = function () {
+        if (window.doNotTrack || navigator.doNotTrack || navigator.msDoNotTrack || "msTrackingProtectionEnabled" in window.external) {
+          if (window.doNotTrack == "1" || navigator.doNotTrack == "yes" || navigator.doNotTrack == "1" || navigator.msDoNotTrack == "1" || window.external.msTrackingProtectionEnabled()) {
+            return true;
+          } else {
+            return false;
+          }
+        } else {
+          return undefined;
+        }
+      }();
+
       var data = hardwareOnly ? JSON.stringify({
         platform: platform,
         hardwareConcurrency: hardwareConcurrency,
@@ -519,7 +531,8 @@ var pubdefend = (function () {
         timezoneOffset: timezoneOffset,
         timezone: timezone,
         touchSupport: touchSupport,
-        canvas: canvas
+        canvas: canvas,
+        doNotTrack: doNotTrack
       });
 
       var murmurhash3_32_gc = function murmurhash3_32_gc(key) {
@@ -598,17 +611,6 @@ var pubdefend = (function () {
     var w = window,
         g = w.googletag ? w.googletag : false;
     var _store$1 = pd.store;
-    /* AD blocker bait  */
-
-    var testBait = bait(function (data) {
-      store(_store$1, "blocked", data);
-    });
-    /* fingerprints */
-
-    var fingerprint = {};
-    fingerprint.hardware = fpHardware;
-    fingerprint.extend = fpExtend;
-    store(_store$1, "fingerprint", fingerprint);
 
     var init = function init() {
       var apiReady = setInterval(function () {
@@ -620,9 +622,18 @@ var pubdefend = (function () {
       }, 100);
     };
 
-
     if (runningOnBrowser && !isBot) {
       documentReady(function () {
+        /* AD blocker bait  */
+        var testBait = bait(function (data) {
+          store(_store$1, "blocked", data);
+        });
+        /* fingerprints */
+
+        var fingerprint = {};
+        fingerprint.hardware = fpHardware;
+        fingerprint.extend = fpExtend;
+        store(_store$1, "fingerprint", fingerprint);
         var _property = {};
         _property.hostname = getHostName(location.hostname);
         _property.domain = pd.domain;
@@ -639,17 +650,6 @@ var pubdefend = (function () {
         store(_store$1, "browser", _browser);
         store(_store$1, "mobile", isMobile);
         loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
-        /* window.addEventListener('load', (event) => {
-                  if ("undefined" != typeof window.adsbygoogle) {
-                      _gtag();
-                      console.log('adsense loaded');
-                  }
-                   if ("undefined" != typeof window.googletag) {
-                      ready();
-                      console.log('googletag loaded');
-                  }
-              }, false); */
-
         init();
       });
     }

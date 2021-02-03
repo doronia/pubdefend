@@ -26,6 +26,18 @@ var getFingerprint = function (hardwareOnly, callback) {
 		}
 	})();
 
+	var doNotTrack = (function () {
+		if (window.doNotTrack || navigator.doNotTrack || navigator.msDoNotTrack || "msTrackingProtectionEnabled" in window.external) {
+			if (window.doNotTrack == "1" || navigator.doNotTrack == "yes" || navigator.doNotTrack == "1" || navigator.msDoNotTrack == "1" || window.external.msTrackingProtectionEnabled()) {
+				return true;
+			} else {
+				return false;
+			}
+		} else {
+			return undefined;
+		}
+	})();
+
 	var data = hardwareOnly
 		? JSON.stringify({
 				platform,
@@ -52,6 +64,7 @@ var getFingerprint = function (hardwareOnly, callback) {
 				timezone,
 				touchSupport,
 				canvas,
+				doNotTrack,
 		  });
 
 	var murmurhash3_32_gc = (key) => {

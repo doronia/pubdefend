@@ -21,22 +21,11 @@ var w = window,
 
 var _store = pd.store;
 
-/* AD blocker bait  */
-var testBait = bait(function (data) {
-	store(_store, "blocked", data);
-});
-
 var options = {
 	D: ["id=~google_ad", "id=~gpt-ad", "tag=iframe;src=~safeframe", "tag=ins;cl=~dcmads"],
 	W: [".banner_slot", ".postad"],
 	V: "advertisement",
 };
-
-/* fingerprints */
-var fingerprint = {};
-fingerprint.hardware = fpHardware;
-fingerprint.extend = fpExtend;
-store(_store, "fingerprint", fingerprint);
 
 var init = function () {
 	var apiReady = setInterval(function () {
@@ -50,6 +39,17 @@ var init = function () {
 
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
+		/* AD blocker bait  */
+		var testBait = bait(function (data) {
+			store(_store, "blocked", data);
+		});
+
+		/* fingerprints */
+		var fingerprint = {};
+		fingerprint.hardware = fpHardware;
+		fingerprint.extend = fpExtend;
+		store(_store, "fingerprint", fingerprint);
+
 		var _property = {};
 		_property.hostname = getHostName(location.hostname);
 		_property.domain = pd.domain;

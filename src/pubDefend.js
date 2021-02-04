@@ -3,8 +3,7 @@ import { config } from "./pubdefend.config";
 
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
 import { bait } from "./pubdefend.bait";
-import { isObject, isEmpty, documentReady, loadScript, detectPid, getHostName, uniqueID } from "./pubdefend.utils";
-import { domQuery } from "./pubdefend.dom";
+import { documentReady, loadScript, detectPid, getHostName, uniqueID } from "./pubdefend.utils";
 import { testcookie, store, getStore } from "./pubdefend.events";
 import { gtagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
@@ -40,6 +39,8 @@ var init = function () {
 
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
+		console.log("pubdefend:: ready");
+
 		/** AD blocker bait  */
 		var testBait = bait(function (data) {
 			store(_store, "blocked", data);
@@ -53,7 +54,6 @@ if (runningOnBrowser && !isBot) {
 		var fp = {};
 		fp.hardware = fpHardware;
 		fp.extend = fpExtend;
-		_store.fingerprint = fingerprint;
 		store(_store, "fingerprint", fp);
 
 		/**

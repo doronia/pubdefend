@@ -156,26 +156,13 @@ var pubdefend = (function () {
 	  throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
 	}
 
-	/* export const isArray = function(obj) { 
-	    return Object.prototype.toString.call(obj) === '[object Array]' };
-	 */
-
-	var isArray = function isArray(obj) {
-	  if (!Array.isArray) {
-	    Array.isArray = function (arg) {
-	      return Object.prototype.toString.call(arg) === '[object Array]';
-	    };
-	  } else {
-	    return Array.isArray;
-	  }
-	};
 	/* Returns false for null and undefined, true for everything else. */
 
 	var exists = function exists(val) {
 	  return val !== undefined && val !== null;
 	};
 	var isObject = function isObject(val) {
-	  return _typeof(val) === 'object' && exists(val) && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof String) && !(val instanceof Number);
+	  return _typeof(val) === "object" && exists(val) && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof String) && !(val instanceof Number);
 	};
 	/* export const loadScript = function(src) {
 	    let script = document.createElement('script');
@@ -186,15 +173,15 @@ var pubdefend = (function () {
 	 */
 
 	function loadScript(src, onLoad) {
-	  var script = document.createElement('script');
-	  script.type = 'text/javascript';
+	  var script = document.createElement("script");
+	  script.type = "text/javascript";
 	  script.src = src;
 
 	  if (script.readyState) {
 	    script.onreadystatechange = function () {
 	      var state = this.readyState;
 
-	      if (state === 'loaded' || state === 'complete') {
+	      if (state === "loaded" || state === "complete") {
 	        script.onreadystatechange = null;
 	        if (onLoad) onLoad();
 	      }
@@ -203,13 +190,13 @@ var pubdefend = (function () {
 	    if (onLoad) script.onload = onLoad;
 	  }
 
-	  document.getElementsByTagName('head')[0].appendChild(script);
+	  document.getElementsByTagName("head")[0].appendChild(script);
 	}
 	var detectPid = function detectPid() {
-	  var e = document.querySelector('[pub-defend-property]');
+	  var e = document.querySelector("[pub-defend-property]");
 	  if (e == null) return;
-	  var d = e.getAttribute('pub-defend-property');
-	  var o = e.getAttribute('pubdefend-opts') || '{}';
+	  var d = e.getAttribute("pub-defend-property");
+	  var o = e.getAttribute("pubdefend-opts") || "{}";
 	  return {
 	    id: d,
 	    options: o
@@ -258,79 +245,6 @@ var pubdefend = (function () {
 	};
 	function uniqueID() {
 	  return new Date().getTime().toString().concat(performance.now());
-	}
-
-	var domQuery = {
-	  htmlCollectionToArray: function htmlCollectionToArray(foundNodes) {
-	    var nodes = [],
-	        index;
-
-	    if (!foundNodes || !foundNodes.length) {
-	      return nodes;
-	    }
-
-	    for (index = 0; index < foundNodes.length; index++) {
-	      nodes.push(foundNodes[index]);
-	    }
-
-	    return nodes;
-	  },
-	  find: function find(selector) {
-	    // we use querySelectorAll only on document, not on nodes because of its unexpected behavior. See for
-	    // instance http://stackoverflow.com/questions/11503534/jquery-vs-document-queryselectorall and
-	    // http://jsfiddle.net/QdMc5/ and http://ejohn.org/blog/thoughts-on-queryselectorall
-	    if (!document.querySelectorAll || !selector) {
-	      return []; // we do not support all browsers
-	    }
-
-	    var foundNodes = document.querySelectorAll(selector);
-	    return this.htmlCollectionToArray(foundNodes);
-	  },
-	  findMultiple: function findMultiple(selectors) {
-	    if (!selectors || !selectors.length) {
-	      return [];
-	    }
-
-	    var index, foundNodes;
-	    var nodes = [];
-
-	    for (index = 0; index < selectors.length; index++) {
-	      foundNodes = this.find(selectors[index]);
-	      nodes = nodes.concat(foundNodes);
-	    }
-
-	    nodes = this.makeNodesUnique(nodes);
-	    return nodes;
-	  },
-	  findNodesByTagName: function findNodesByTagName(node, tagName) {
-	    if (!node || !tagName || !node.getElementsByTagName) {
-	      return [];
-	    }
-
-	    var foundNodes = node.getElementsByTagName(tagName);
-	    return this.htmlCollectionToArray(foundNodes);
-	  }
-	};
-	function checkIfVisible(el) {
-	  if (!el) {
-	    return false;
-	  }
-
-	  function _getStyle(el, property) {
-	    if (window.getComputedStyle) {
-	      return document.defaultView.getComputedStyle(el, null)[property];
-	    }
-
-	    if (el.currentStyle) {
-	      return el.currentStyle[property];
-	    }
-	  }
-
-	  if ('0' === _getStyle(el, 'opacity') || 'none' === _getStyle(el, 'display') || 'hidden' === _getStyle(el, 'visibility')) {
-	    return false;
-	  }
-
-	  return true;
 	}
 
 	var Cookies = {
@@ -406,12 +320,105 @@ var pubdefend = (function () {
 	  console.log(btoa(_obj));
 	}
 
+	var domQuery = {
+	  htmlCollectionToArray: function htmlCollectionToArray(foundNodes) {
+	    var nodes = [],
+	        index;
+
+	    if (!foundNodes || !foundNodes.length) {
+	      return nodes;
+	    }
+
+	    for (index = 0; index < foundNodes.length; index++) {
+	      nodes.push(foundNodes[index]);
+	    }
+
+	    return nodes;
+	  },
+	  find: function find(selector) {
+	    // we use querySelectorAll only on document, not on nodes because of its unexpected behavior. See for
+	    // instance http://stackoverflow.com/questions/11503534/jquery-vs-document-queryselectorall and
+	    // http://jsfiddle.net/QdMc5/ and http://ejohn.org/blog/thoughts-on-queryselectorall
+	    if (!document.querySelectorAll || !selector) {
+	      return []; // we do not support all browsers
+	    }
+
+	    var foundNodes = document.querySelectorAll(selector);
+	    return this.htmlCollectionToArray(foundNodes);
+	  },
+	  findMultiple: function findMultiple(selectors) {
+	    if (!selectors || !selectors.length) {
+	      return [];
+	    }
+
+	    var index, foundNodes;
+	    var nodes = [];
+
+	    for (index = 0; index < selectors.length; index++) {
+	      foundNodes = this.find(selectors[index]);
+	      nodes = nodes.concat(foundNodes);
+	    }
+
+	    nodes = this.makeNodesUnique(nodes);
+	    return nodes;
+	  },
+	  findNodesByTagName: function findNodesByTagName(node, tagName) {
+	    if (!node || !tagName || !node.getElementsByTagName) {
+	      return [];
+	    }
+
+	    var foundNodes = node.getElementsByTagName(tagName);
+	    return this.htmlCollectionToArray(foundNodes);
+	  }
+	};
+	function checkIfVisible(el) {
+	  if (!el) {
+	    return false;
+	  }
+
+	  function _getStyle(el, property) {
+	    if (window.getComputedStyle) {
+	      return document.defaultView.getComputedStyle(el, null)[property];
+	    }
+
+	    if (el.currentStyle) {
+	      return el.currentStyle[property];
+	    }
+	  }
+
+	  if ('0' === _getStyle(el, 'opacity') || 'none' === _getStyle(el, 'display') || 'hidden' === _getStyle(el, 'visibility')) {
+	    return false;
+	  }
+
+	  return true;
+	}
+
+	/**
+	 * Object.entries
+	 */
+	function entriesPolyFill(obj) {
+	  return Object.keys(obj).reduce(function (arr, key) {
+	    arr.push([key, obj[key]]);
+	    return arr;
+	  }, []);
+	}
+
+	var entries = Object.entries ? Object.entries : entriesPolyFill;
+	var isArray = function isArray(obj) {
+	  if (!Array.isArray) {
+	    Array.isArray = function (arg) {
+	      return Object.prototype.toString.call(arg) === "[object Array]";
+	    };
+	  } else {
+	    return Array.isArray;
+	  }
+	};
+
 	var _store = pd.store;
 	var solts_arr = [],
 	    solts_req = 0,
 	    solts_rec = 0;
 	function gtagHandler() {
-	  console.log("pubdefend:: ready");
 	  var g = googletag.pubads();
 	  solts_req = g.getSlots().length;
 	  store(_store, "gtag_slots", solts_req);
@@ -422,7 +429,7 @@ var pubdefend = (function () {
 	    g.addEventListener("slotRenderEnded", listenForSlots.bind(null, getSlotsElements), false);
 	  }
 
-	  console.log("slots:", solts_req);
+	  console.log("googaltag slots:", solts_req);
 	}
 
 	var listenForSlots = function listenForSlots(callback, event) {
@@ -434,7 +441,7 @@ var pubdefend = (function () {
 	    render: true,
 	    visible: isItVisible
 	  };
-	  console.log("Slot", slot.getSlotElementId(), "finished rendering."); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
+	  console.log("googaltag Slot", slot.getSlotElementId(), "finished rendering."); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
 	  //console.log('solts_arr', solts_arr)
 
 	  if (solts_rec < solts_req) {
@@ -453,18 +460,6 @@ var pubdefend = (function () {
 	    console.log(val.parentElement.id);
 	  });
 	};
-
-	/**
-	 * Object.entries
-	 */
-	function entriesPolyFill(obj) {
-	  return Object.keys(obj).reduce(function (arr, key) {
-	    arr.push([key, obj[key]]);
-	    return arr;
-	  }, []);
-	}
-
-	var entries = Object.entries ? Object.entries : entriesPolyFill;
 
 	function murmurhash3_32_gc(key) {
 	  var remainder = key.length & 3; // key.length % 4
@@ -637,7 +632,9 @@ var pubdefend = (function () {
 
 	if (runningOnBrowser && !isBot) {
 	  documentReady(function () {
+	    console.log("pubdefend:: ready");
 	    /** AD blocker bait  */
+
 	    var testBait = bait(function (data) {
 	      store(_store$1, "blocked", data);
 	    });
@@ -650,7 +647,6 @@ var pubdefend = (function () {
 	    var fp = {};
 	    fp.hardware = fpHardware;
 	    fp.extend = fpExtend;
-	    _store$1.fingerprint = fingerprint;
 	    store(_store$1, "fingerprint", fp);
 	    /**
 	     *  publisher properties.

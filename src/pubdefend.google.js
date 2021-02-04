@@ -1,7 +1,7 @@
 import { pd } from "./pubdefend.init";
 import { saveEventQueue, store } from "./pubdefend.events";
 import { domQuery, checkIfVisible } from "./pubdefend.dom";
-import { isArray } from "./pubdefend.utils";
+import { isArray } from "./pubdefend.polyfills";
 
 var _store = pd.store;
 var solts_arr = [],
@@ -12,7 +12,6 @@ var solts_arr = [],
 	x = 0;
 
 export function gtagHandler() {
-	console.log("pubdefend:: ready");
 	var g = googletag.pubads();
 	solts_req = g.getSlots().length;
 	store(_store, "gtag_slots", solts_req);
@@ -23,7 +22,7 @@ export function gtagHandler() {
 		Listener = g.addEventListener("slotRenderEnded", listenForSlots.bind(null, getSlotsElements), false);
 	}
 
-	console.log("slots:", solts_req);
+	console.log("googaltag slots:", solts_req);
 }
 
 var listenForSlots = function (callback, event) {
@@ -34,7 +33,7 @@ var listenForSlots = function (callback, event) {
 	var isItVisible = checkIfVisible(elm);
 	solts_arr[id] = { render: true, visible: isItVisible };
 
-	console.log("Slot", slot.getSlotElementId(), "finished rendering.");
+	console.log("googaltag Slot", slot.getSlotElementId(), "finished rendering.");
 	//console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
 	//console.log('solts_arr', solts_arr)
 

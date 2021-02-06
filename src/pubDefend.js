@@ -27,54 +27,66 @@ var options = {
 	V: "advertisement",
 };
 
-var init = function () {
+function isReady(callback) {
+	gtagApiReady(function (status) {
+		console.log("gtag::", status);
+	});
+	/**
+	 *  Browser Fingerprints.
+	 *  TODO:
+	 *  - follow changes in the fingerprints
+	 */
+	var fp = {};
+	fp.hardware = fpHardware;
+	fp.extend = fpExtend;
+	store(_store, "fingerprint", fp);
+
+	/**
+	 *  publisher properties.
+	 *  TODO:
+	 * 	- validate domaian indexof hostname
+	 */
+	var _property = {};
+	_property.hostname = getHostName(location.hostname);
+	_property.domain = pd.domain;
+	_property.pubid = detectPid().id;
+	store(_store, "publisher", _property);
+
+	/** generate session id */
+	var _sid = uniqueID();
+	store(_store, "sid", _sid);
+
+	var _browser = detectBrowser();
+	store(_store, "browser", _browser);
+
+	store(_store, "isMobile", isMobile);
+
+	/** AD blocker bait  */
+	var testBait = bait(function (data) {
+		store(_store, "blocked", data);
+	});
+
+	//console.log("pubdefend:: is ready");
+	if (callback) {
+		callback("isReady");
+	}
+	return "isReady";
+}
+
+function gtagApiReady(callback) {
 	var apiReady = setInterval(function () {
 		if (g && g.apiReady) {
 			console.log("googaltag apiReady:", g && g.apiReady);
 			clearInterval(apiReady);
-			gtagHandler();
+
+			gtagHandler(callback);
 		}
 	}, 100);
-};
+}
 
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
-		console.log("pubdefend:: ready");
-
-		/** AD blocker bait  */
-		var testBait = bait(function (data) {
-			store(_store, "blocked", data);
-		});
-
-		/**
-		 *  Browser Fingerprints.
-		 *  TODO:
-		 *  - follow changes in the fingerprints
-		 */
-		var fp = {};
-		fp.hardware = fpHardware;
-		fp.extend = fpExtend;
-		store(_store, "fingerprint", fp);
-
-		/**
-		 *  publisher properties.
-		 *  TODO:
-		 * 	- validate domaian indexof hostname
-		 */
-		var _property = {};
-		_property.hostname = getHostName(location.hostname);
-		_property.domain = pd.domain;
-		_property.pubid = detectPid().id;
-		store(_store, "publisher", _property);
-
-		/** generate session id */
-		var _sid = uniqueID();
-		store(_store, "sid", _sid);
-
-		var _browser = detectBrowser();
-		store(_store, "browser", _browser);
-
-		store(_store, "isMobile", isMobile);
+		console.log("pubdefend:: init..");
 
 		/**
 		 * Load Paho mqtt lib.
@@ -82,9 +94,15 @@ if (runningOnBrowser && !isBot) {
 		 * - upload mqttws31.min.js to CDN & change loadScript path with {config endpoints}
 		 * - create instance of Paho class and raise event to start websocket connection and send method
 		 */
-		loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
+		isReady(function (status) {
+			console.log("pubdefend::", status);
+			//console.log(getStore());
+			console.log("pubdefend:: Loading paho lib");
+			//loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
+			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js");
+		});
 
-		init();
+		//gtagApiReady();
 	});
 }
 

@@ -57,7 +57,7 @@ export const getIframeContent = function (frameId) {
 	return frameContent;
 };
 
-export const abEnabled = function (callback) {
+export const abEnabled = function (onLoad) {
 	var url = "https://" + config.static + "/js/ad_banner.js";
 	var xhr = new XMLHttpRequest();
 	xhr.open("HEAD", url, true);
@@ -65,25 +65,15 @@ export const abEnabled = function (callback) {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			var status = xhr.status;
 			if (status === 0 || (status >= 200 && status < 400)) {
-				//console.log('xhr.status:', true);
-				if (callback) callback(false);
+				if (onLoad) onLoad(false);
 			}
 		}
 	};
 	xhr.onerror = function (e) {
-		if (callback) callback(true);
-		//console.log('xhr.status:', false);
+		if (onLoad) onLoad(true);
 	};
 	xhr.send(null);
 };
-
-/* export const loadScript = function(src) {
-    let script = document.createElement('script');
-    script.src = src;
-    script.async = false;
-    document.body.appendChild(script);
-}
- */
 
 export function loadScript(src, onLoad) {
 	var script = document.createElement("script");

@@ -3,100 +3,127 @@ https://www.eclipse.org/paho/index.php?page=clients/js/index.php
 https://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
  */
 
-import { pd } from './pubdefend.init';
-import { config } from './pubdefend.config';
+import { pd } from "./pubdefend.init";
+import { config } from "./pubdefend.config";
+import { customEvent } from "./pubdefend.events";
 
-export var MqttClient = function() {
-    var self = this;
+export function MqttClient() {
+	var host = "wss://ws.pubdefend.com/ws"; //config.endpoints.websocket + "." + config.endpoints.domain;
+	var wsport = 443;
+	var cid = "cid_" + parseInt(Math.random() * 100, 10);
 
-    self.endpoint = config.endpoints;
-    self.wsbroker = endpoint.websocket + '.' + endpoint.domain
-    self.wsport = 443;
-    self.cid = "cid_" + parseInt(Math.random() * 100, 10);
-    self.subscription = "test";
+	var self = this;
 
-    self.client = new Paho.MQTT.Client(self.wsbroker, self.wsport, "/ws", self.cid);
-    self.client.onMessageArrived = self.MessageArrived;
-    self.client.onConnectionLost = self.ConnectionLost;
-    self.Connect();
+	self.topic = "test";
+	self.client = new Paho.MQTT.Client(host, cid);
+	self.client.onMessageArrived = MessageArrived;
+	self.client.onConnectionLost = ConnectionLost;
+	Connect();
 
+	/*Initiates a connection to the MQTT broker*/
+	function Connect() {
+		self.client.connect({
+			onSuccess: Connected,
+			onFailure: ConnectionFailed,
+			keepAliveInterval: 30,
+			useSSL: true,
+			timeout: 3,
+		});
+	}
 
+	/*Callback for successful MQTT connection */
+	function Connected() {
+		console.log("pubdefend:: ws Connected");
+		self.client.subscribe(self.topic, {
+			qos: 1,
+		});
 
+		customEvent("wsLoaded");
+	}
 
-    /*Initiates a connection to the MQTT broker*/
-    self.Connect = function() {
-        self.client.connect({
-            onSuccess: Connected,
-            onFailure: ConnectionFailed,
-            keepAliveInterval: 30,
-            useSSL: true,
-        });
-    }
+	/*Callback for failed connection*/
+	function ConnectionFailed(res) {
+		console.log("Connect failed:" + res.errorMessage);
+	}
 
-    /*Callback for successful MQTT connection */
-    self.Connected = function() {
-        console.log("Connected");
-        mqttClient.subscribe(subscription);
-    }
+	/*Callback for lost connection*/
+	function ConnectionLost(res) {
+		if (res.errorCode !== 0) {
+			console.log("Connection lost:" + res.errorMessage);
+			Connect();
+		}
+	}
 
-    /*Callback for failed connection*/
-    self.ConnectionFailed = function(res) {
-        console.log("Connect failed:" + res.errorMessage);
-    }
+	/*Callback for incoming message processing */
 
-    /*Callback for lost connection*/
-    self.ConnectionLost = function(res) {
-        if (res.errorCode !== 0) {
-            console.log("Connection lost:" + res.errorMessage);
-            self.Connect();
-        }
-    }
+	function MessageArrived(message) {
+		//console.log(message.destinationName + " : " + message.payloadString);
+		/* switch (message.payloadString) {
+			case "ON":
+				displayClass = "on";
+				break;
+			case "OFF":
+				displayClass = "off";
+				break;
+			default:
+				displayClass = "unknown";
+		}
+		var topic = message.destinationName.split("/");
+		if (topic.length == 3) {
+			var ioname = topic[1];
+			UpdateElement(ioname, displayClass);
+		} */
+	}
 
-    /*Callback for incoming message processing */
+	function createMessage(topic, payload, qos, retain) {
+		var message = new Paho.MQTT.Message(payload);
+		message.destinationName = topic;
+		message.qos = Number(qos) || 0;
+		message.retained = !!retain;
 
-    self.MessageArrived = function(message) {
-        console.log(message.destinationName + " : " + message.payloadString);
-        switch (message.payloadString) {
-            case "ON":
-                displayClass = "on";
-                break;
-            case "OFF":
-                displayClass = "off";
-                break;
-            default:
-                displayClass = "unknown";
-        }
-        var topic = message.destinationName.split("/");
-        if (topic.length == 3) {
-            var ioname = topic[1];
-            UpdateElement(ioname, displayClass);
-        }
-    }
+		return message;
+	}
 
-    var createMessage = function(topic, payload, qos, retain) {
-        var message = new Paho.MQTT.Message(payload);
-        message.destinationName = topic;
-        message.qos = Number(qos) || 0;
-        message.retained = !!retain;
+	self.publish = function (topic, payload, options, callback) {
+		var message = createMessage(topic, payload, options && options.qos, options && options.retain);
+		if (callback) {
+			if (message.qos < 1) {
+				setTimeout(callback);
+			} else {
+				message.callback = callback;
+				messageCache.push(message);
+			}
+		}
+		self.client.send(message);
+	};
 
-        return message;
-    };
+	self.pub = function (data, callback) {
+		if (!data) return;
 
-    self.publish = function(topic, payload, options, callback) {
-        var message = createMessage(topic, payload, options && options.qos, options && options.retain);
-        if (callback) {
-            if (message.qos < 1) {
-                setTimeout(callback);
-            } else {
-                message.callback = callback;
-                self.messageCache.push(message);
-            }
-        }
-        self.client.send(message);
-    };
+		var message = new Paho.MQTT.Message(data);
+		message.destinationName = self.topic;
+		//debug("SEND ON " + message.destinationName + " PAYLOAD " + data);
+		//console.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
+		if (callback) {
+			setTimeout(callback);
+		}
+		self.client.send(message);
+	};
 
+	return self;
+}
 
-    return self;
-};
-
-var client = new MqttClient();
+export function createInstance(classObj, options) {
+	var event;
+	let eventString = "ws";
+	let instance = new classObj(options);
+	try {
+		// Works in modern browsers
+		event = new CustomEvent(eventString, { detail: { instance } });
+	} catch (err) {
+		// Works in Internet Explorer (all versions)
+		event = document.createEvent("CustomEvent");
+		event.initCustomEvent(eventString, false, false, { instance });
+	}
+	window.dispatchEvent(event);
+}

@@ -1,4 +1,5 @@
 import { config } from "./pubdefend.config";
+import { murmurhash3_32_gc } from "./pubdefend.fingerprint";
 
 /* Returns false for null and undefined, true for everything else. */
 export const exists = (val) => {
@@ -154,5 +155,6 @@ export const getHostName = function (e) {
 };
 
 export function uniqueID() {
-	return new Date().getTime().toString().concat(performance.now());
+	var uid = new Date().getTime().toString().concat(performance.now());
+	return murmurhash3_32_gc(uid);
 }

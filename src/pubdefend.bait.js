@@ -3,7 +3,6 @@ import { config } from "./pubdefend.config";
 var endpoint = config.endpoints;
 
 export function bait(callback) {
-	var bait = true;
 	var url = "https://" + endpoint.cdn + "." + endpoint.domain + "/js/" + endpoint.bait;
 	var xhr = new XMLHttpRequest();
 	xhr.open("HEAD", url, true);
@@ -11,17 +10,13 @@ export function bait(callback) {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			var status = xhr.status;
 			if (status === 0 || (status >= 200 && status < 400)) {
-				bait = false;
-				//if (callback) callback(bait);
-				//return;
+				if (callback) callback(false);
+				return;
 			}
 		}
 	};
 	xhr.onerror = function (e) {
-		//if (callback) callback(bait);
+		if (callback) callback(true);
 	};
 	xhr.send(null);
-
-	if (callback) callback(bait);
-	return bait;
 }

@@ -56,6 +56,5 @@ var listenForSlotsCallback = function (arr) {
 	arr.forEach(function (val) {
 		console.log(val.parentElement.id);
 	}); */
-
-	console.log(getStore());
+	//console.log(getStore());
 };

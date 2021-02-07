@@ -61,6 +61,22 @@ export function getStore(encode) {
 	return _obj;
 }
 
+export function customEvent(name, details) {
+	if (!name) return;
+	var data = details ? details : "none";
+	var event;
+	let eventString = name;
+	try {
+		// Works in modern browsers
+		event = new CustomEvent(eventString, { detail: { data } });
+	} catch (err) {
+		// Works in Internet Explorer (all versions)
+		event = document.createEvent("CustomEvent");
+		event.initCustomEvent(eventString, false, false, { instance });
+	}
+	window.dispatchEvent(event);
+}
+
 /*  Dev only */
 export function testcookie() {
 	var _obj = {};

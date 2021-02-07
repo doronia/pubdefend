@@ -2,11 +2,13 @@ import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
 
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
-import { bait } from "./pubdefend.bait";
-import { documentReady, loadScript, detectPid, getHostName, uniqueID } from "./pubdefend.utils";
+import { documentReady, loadScript, detectPid, getHostName } from "./pubdefend.utils";
 import { testcookie, store, getStore } from "./pubdefend.events";
 import { gtagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
+import { bait } from "./pubdefend.bait";
+
+import { MqttClient, createInstance } from "./pubdefend.mqtt";
 
 /* Polyfills*/
 //import 'core-js/features/promise';
@@ -46,15 +48,18 @@ function isReady(callback) {
 	 *  TODO:
 	 * 	- validate domaian indexof hostname
 	 */
-	var _property = {};
-	_property.hostname = getHostName(location.hostname);
-	_property.domain = pd.domain;
-	_property.pubid = detectPid().id;
-	store(_store, "publisher", _property);
+	var _p = {};
+	_p.hostname = getHostName(location.hostname);
+	_p.domain = pd.domain;
+	_p.sameSite = -1 !== _p.hostname.indexOf(_p.domain.toString());
+	_p.pubid = detectPid().id;
+	store(_store, "publisher", _p);
 
-	/** generate session id */
-	var _sid = uniqueID();
-	store(_store, "sid", _sid);
+	/** generate session id
+	 *  Replaced by fingerPrint
+	 *  var _sid = uniqueID();
+	 *  store(_store, "sid", _sid);
+	 */
 
 	var _browser = detectBrowser();
 	store(_store, "browser", _browser);
@@ -98,8 +103,26 @@ if (runningOnBrowser && !isBot) {
 			console.log("pubdefend::", status);
 			//console.log(getStore());
 			console.log("pubdefend:: Loading paho lib");
-			//loadScript("https://cdnjs.cloudflare.com/ajax/libs/paho-mqtt/1.0.1/mqttws31.min.js");
-			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js");
+
+			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
+				console.log("pubdefend:: paho lib ready");
+
+				var ws = new MqttClient();
+				var listenToWs = window.addEventListener(
+					"wsLoaded",
+					function (e) {
+						console.log("listenToWs", e.details);
+						ws.pub(JSON.stringify(getStore()));
+					},
+					true
+				);
+				/* var client = new MqttClient();
+				setInterval(
+					
+
+					100
+				); */
+			});
 		});
 
 		//gtagApiReady();

@@ -17,9 +17,9 @@ import { MqttClient, createInstance } from "./pubdefend.mqtt";
 pd.testcookie = testcookie;
 pd.getStore = getStore;
 
-var w = window,
-	g = w.googletag ? w.googletag : false,
-	d = document;
+var w = window;
+//g = w.googletag ? w.googletag : false,
+//d = document;
 
 var _store = pd.store;
 
@@ -39,8 +39,8 @@ function isReady(callback) {
 	 *  - follow changes in the fingerprints
 	 */
 	var fp = {};
-	fp.hardware = fpHardware;
-	fp.extend = fpExtend;
+	fp["hardware"] = fpHardware;
+	fp["extended"] = fpExtend;
 	store(_store, "fingerprint", fp);
 
 	/**
@@ -49,10 +49,10 @@ function isReady(callback) {
 	 * 	- validate domaian indexof hostname
 	 */
 	var _p = {};
-	_p.hostname = getHostName(location.hostname);
-	_p.domain = pd.domain;
-	_p.sameSite = -1 !== _p.hostname.indexOf(_p.domain.toString());
-	_p.pubid = detectPid().id;
+	_p["hostname"] = getHostName(location.hostname);
+	_p["domain"] = pd.domain;
+	_p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
+	_p["pubid"] = detectPid("[pub-defend-property]").id;
 	store(_store, "publisher", _p);
 
 	/** generate session id
@@ -60,7 +60,6 @@ function isReady(callback) {
 	 *  var _sid = uniqueID();
 	 *  store(_store, "sid", _sid);
 	 */
-
 	var _browser = detectBrowser();
 	store(_store, "browser", _browser);
 
@@ -71,7 +70,6 @@ function isReady(callback) {
 		store(_store, "blocked", data);
 	});
 
-	//console.log("pubdefend:: is ready");
 	if (callback) {
 		callback("isReady");
 	}
@@ -79,14 +77,20 @@ function isReady(callback) {
 }
 
 function gtagApiReady(callback) {
+	var limit = 5,
+		g = window["googletag"];
 	var apiReady = setInterval(function () {
-		if (g && g.apiReady) {
-			console.log("googaltag apiReady:", g && g.apiReady);
+		console.log(limit);
+		if (g && g["apiReady"]) {
+			console.log("googaltag apiReady:", g && g["apiReady"]);
 			clearInterval(apiReady);
-
 			gtagHandler(callback);
 		}
-	}, 100);
+		if (limit <= 0) {
+			clearInterval(apiReady);
+		}
+		limit -= 1;
+	}, 300);
 }
 
 if (runningOnBrowser && !isBot) {
@@ -101,7 +105,6 @@ if (runningOnBrowser && !isBot) {
 		 */
 		isReady(function (status) {
 			console.log("pubdefend::", status);
-			//console.log(getStore());
 			console.log("pubdefend:: Loading paho lib");
 
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
@@ -111,21 +114,13 @@ if (runningOnBrowser && !isBot) {
 				var listenToWs = window.addEventListener(
 					"wsLoaded",
 					function (e) {
-						console.log("listenToWs", e.details);
+						console.log("listenToWs", e.detail);
 						ws.pub(JSON.stringify(getStore()));
 					},
 					true
 				);
-				/* var client = new MqttClient();
-				setInterval(
-					
-
-					100
-				); */
 			});
 		});
-
-		//gtagApiReady();
 	});
 }
 

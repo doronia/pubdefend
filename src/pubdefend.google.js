@@ -1,7 +1,6 @@
 import { pd } from "./pubdefend.init";
-import { saveEventQueue, store, getStore } from "./pubdefend.events";
+import { store } from "./pubdefend.events";
 import { domQuery, checkIfVisible } from "./pubdefend.dom";
-import { isArray } from "./pubdefend.polyfills";
 
 var _store = pd.store;
 var solts_arr = {},
@@ -12,7 +11,7 @@ var solts_arr = {},
 	rendered = false;
 
 export function gtagHandler(callback) {
-	var g = googletag.pubads();
+	var g = window["googletag"].pubads();
 	solts_req = g.getSlots().length;
 	store(_store, "gtag_slots", solts_req);
 

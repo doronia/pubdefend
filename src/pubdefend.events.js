@@ -36,8 +36,6 @@ export function addEventListener(element, eventType, eventHandler, useCapture) {
 
 export function store(obj, prop, val) {
 	if (!isObject(obj)) return;
-	//if (!isObject(obj) && !isEmpty(obj)) return;
-	//console.log('prop:', prop, obj.hasOwnProperty(prop))
 	if (!obj.hasOwnProperty(prop)) {
 		obj[prop] = val;
 	}
@@ -67,10 +65,8 @@ export function customEvent(name, details) {
 	var event;
 	let eventString = name;
 	try {
-		// Works in modern browsers
 		event = new CustomEvent(eventString, { detail: { data } });
 	} catch (err) {
-		// Works in Internet Explorer (all versions)
 		event = document.createEvent("CustomEvent");
 		event.initCustomEvent(eventString, false, false, { instance });
 	}

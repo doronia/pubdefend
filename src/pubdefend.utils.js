@@ -58,24 +58,6 @@ export const getIframeContent = function (frameId) {
 	return frameContent;
 };
 
-export const abEnabled = function (onLoad) {
-	var url = "https://" + config.static + "/js/ad_banner.js";
-	var xhr = new XMLHttpRequest();
-	xhr.open("HEAD", url, true);
-	xhr.onload = function (e) {
-		if (xhr.readyState === XMLHttpRequest.DONE) {
-			var status = xhr.status;
-			if (status === 0 || (status >= 200 && status < 400)) {
-				if (onLoad) onLoad(false);
-			}
-		}
-	};
-	xhr.onerror = function (e) {
-		if (onLoad) onLoad(true);
-	};
-	xhr.send(null);
-};
-
 export function loadScript(src, onLoad) {
 	var script = document.createElement("script");
 	script.type = "text/javascript";
@@ -95,8 +77,8 @@ export function loadScript(src, onLoad) {
 	document.getElementsByTagName("head")[0].appendChild(script);
 }
 
-export const detectPid = function () {
-	const e = document.querySelector("[pub-defend-property]");
+export const detectPid = function (str) {
+	const e = document.querySelector(str);
 	if (e == null) return;
 
 	const d = e.getAttribute("pub-defend-property");

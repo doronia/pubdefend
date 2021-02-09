@@ -10,18 +10,15 @@ import { bait } from "./pubdefend.bait";
 
 import { MqttClient, createInstance } from "./pubdefend.mqtt";
 
-/* Polyfills*/
-//import 'core-js/features/promise';
-//Promise.resolve(32).then(x => console.log(x));
+/**
+ * Polyfills
+ * import 'core-js/features/promise';
+ * Promise.resolve(32).then(x => console.log(x));
+ * */
 
 pd.testcookie = testcookie;
 pd.getStore = getStore;
-
-var w = window;
-//g = w.googletag ? w.googletag : false,
-//d = document;
-
-var _store = pd.store;
+pd.wsIsReady = false;
 
 var options = {
 	D: ["id=~google_ad", "id=~gpt-ad", "tag=iframe;src=~safeframe", "tag=ins;cl=~dcmads"],
@@ -31,7 +28,7 @@ var options = {
 
 function isReady(callback) {
 	gtagApiReady(function (status) {
-		console.log("gtag::", status);
+		console.log("gtagHandler::", status);
 	});
 	/**
 	 *  Browser Fingerprints.
@@ -41,7 +38,7 @@ function isReady(callback) {
 	var fp = {};
 	fp["hardware"] = fpHardware;
 	fp["extended"] = fpExtend;
-	store(_store, "fingerprint", fp);
+	store(pd.store, "fingerprint", fp);
 
 	/**
 	 *  publisher properties.
@@ -53,21 +50,21 @@ function isReady(callback) {
 	_p["domain"] = pd.domain;
 	_p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
 	_p["pubid"] = detectPid("[pub-defend-property]").id;
-	store(_store, "publisher", _p);
+	store(pd.store, "publisher", _p);
 
 	/** generate session id
 	 *  Replaced by fingerPrint
 	 *  var _sid = uniqueID();
-	 *  store(_store, "sid", _sid);
+	 *  store(pd.store, "sid", _sid);
 	 */
 	var _browser = detectBrowser();
-	store(_store, "browser", _browser);
+	store(pd.store, "browser", _browser);
 
-	store(_store, "isMobile", isMobile);
+	store(pd.store, "isMobile", isMobile);
 
 	/** AD blocker bait  */
 	var testBait = bait(function (data) {
-		store(_store, "blocked", data);
+		store(pd.store, "blocked", data);
 	});
 
 	if (callback) {
@@ -77,16 +74,17 @@ function isReady(callback) {
 }
 
 function gtagApiReady(callback) {
-	var limit = 5,
-		g = window["googletag"];
+	var limit = 5;
+	var g = window["googletag"];
+
 	var apiReady = setInterval(function () {
-		console.log(limit);
+		console.debug("googaltag apiReady check", limit);
+
 		if (g && g["apiReady"]) {
-			console.log("googaltag apiReady:", g && g["apiReady"]);
-			clearInterval(apiReady);
+			console.debug("googaltag apiReady:", g && g["apiReady"]);
 			gtagHandler(callback);
-		}
-		if (limit <= 0) {
+			clearInterval(apiReady);
+		} else if (limit <= 0) {
 			clearInterval(apiReady);
 		}
 		limit -= 1;
@@ -110,15 +108,18 @@ if (runningOnBrowser && !isBot) {
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
 				console.log("pubdefend:: paho lib ready");
 
-				var ws = new MqttClient();
-				var listenToWs = window.addEventListener(
-					"wsLoaded",
-					function (e) {
-						console.log("listenToWs", e.detail);
-						ws.pub(JSON.stringify(getStore()));
-					},
-					true
-				);
+				try {
+					var ws = new MqttClient();
+					var listenToWs = window.addEventListener(
+						"wsLoaded",
+						function (e) {
+							pd.wsIsReady = true;
+							console.log("listenToWs", e.detail);
+							ws.pub(JSON.stringify(getStore()));
+						},
+						{ once: true }
+					);
+				} catch (err) {}
 			});
 		});
 	});

@@ -3,6 +3,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import babel from "rollup-plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "rollup-plugin-replace";
+import banner from "rollup-plugin-banner";
 
 const { NODE_ENV = "development", DOMAIN = "" } = process.env;
 
@@ -29,7 +30,6 @@ const terserOptions_v2 = {
 	},
 	format: {
 		comments: false,
-		preamble: "/* pubdefend v0.01 */",
 	},
 
 	ecma: 5, // specify one of: 5, 2015, 2016, etc.
@@ -41,6 +41,36 @@ const terserOptions_v2 = {
 	safari10: false,
 	toplevel: true,
 };
+const terserOptions_prod = {
+	parse: {
+		// parse options
+	},
+	compress: {
+		// compress options
+		drop_console: true,
+	},
+	mangle: {
+		// mangle options
+
+		properties: {
+			reserved: ["googletag", "pubads", "errorMessage", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"],
+			keep_quoted: true,
+		},
+	},
+	format: {
+		comments: false,
+	},
+
+	ecma: 5, // specify one of: 5, 2015, 2016, etc.
+	keep_classnames: false,
+	keep_fnames: false,
+	ie8: false,
+	module: false,
+	nameCache: null, // or specify a name cache object
+	safari10: false,
+	toplevel: true,
+};
+
 const terserOptions = {
 	toplevel: true,
 	/* compress: {
@@ -66,7 +96,6 @@ module.exports = [
 				file: "dist/pubDefend.iife.js",
 				name: "pubdefend",
 				format: "iife",
-				banner: "/* pubDefend version " + 1.01 + " */",
 			},
 			{
 				file: "dist/" + publisher + "pubDefend.iife.min.js",
@@ -75,10 +104,10 @@ module.exports = [
 				plugins: [terser(terserOptions_v2)],
 			},
 			{
-				file: "dist/" + publisher + "pubDefend.iife.min.js",
+				file: "dist/" + publisher + "pubDefend.js",
 				name: "pubdefend",
 				format: "iife",
-				plugins: [terser(terserOptions_v2)],
+				plugins: [terser(terserOptions_prod), banner("PubDefend 1.1.1\nCopyright (c) 2020 Doron Miterani")],
 			},
 		],
 		plugins: [

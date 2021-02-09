@@ -1,4 +1,3 @@
-/* pubDefend version 1.01 */
 var pubdefend = (function () {
 	'use strict';
 
@@ -649,20 +648,19 @@ var pubdefend = (function () {
 		return self;
 	}
 
-	/* Polyfills*/
-	//import 'core-js/features/promise';
-	//Promise.resolve(32).then(x => console.log(x));
+	/**
+	 * Polyfills
+	 * import 'core-js/features/promise';
+	 * Promise.resolve(32).then(x => console.log(x));
+	 * */
 
 	pd.testcookie = testcookie;
 	pd.getStore = getStore;
-	//g = w.googletag ? w.googletag : false,
-	//d = document;
-
-	var _store$1 = pd.store;
+	pd.wsIsReady = false;
 
 	function isReady(callback) {
 		gtagApiReady(function (status) {
-			console.log("gtag::", status);
+			console.log("gtagHandler::", status);
 		});
 		/**
 		 *  Browser Fingerprints.
@@ -672,7 +670,7 @@ var pubdefend = (function () {
 		var fp = {};
 		fp["hardware"] = fpHardware;
 		fp["extended"] = fpExtend;
-		store(_store$1, "fingerprint", fp);
+		store(pd.store, "fingerprint", fp);
 
 		/**
 		 *  publisher properties.
@@ -684,21 +682,21 @@ var pubdefend = (function () {
 		_p["domain"] = pd.domain;
 		_p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
 		_p["pubid"] = detectPid("[pub-defend-property]").id;
-		store(_store$1, "publisher", _p);
+		store(pd.store, "publisher", _p);
 
 		/** generate session id
 		 *  Replaced by fingerPrint
 		 *  var _sid = uniqueID();
-		 *  store(_store, "sid", _sid);
+		 *  store(pd.store, "sid", _sid);
 		 */
 		var _browser = detectBrowser();
-		store(_store$1, "browser", _browser);
+		store(pd.store, "browser", _browser);
 
-		store(_store$1, "isMobile", isMobile);
+		store(pd.store, "isMobile", isMobile);
 
 		/** AD blocker bait  */
 		var testBait = bait(function (data) {
-			store(_store$1, "blocked", data);
+			store(pd.store, "blocked", data);
 		});
 
 		if (callback) {
@@ -708,16 +706,17 @@ var pubdefend = (function () {
 	}
 
 	function gtagApiReady(callback) {
-		var limit = 5,
-			g = window["googletag"];
+		var limit = 5;
+		var g = window["googletag"];
+
 		var apiReady = setInterval(function () {
-			console.log(limit);
+			console.debug("googaltag apiReady check", limit);
+
 			if (g && g["apiReady"]) {
-				console.log("googaltag apiReady:", g && g["apiReady"]);
-				clearInterval(apiReady);
+				console.debug("googaltag apiReady:", g && g["apiReady"]);
 				gtagHandler(callback);
-			}
-			if (limit <= 0) {
+				clearInterval(apiReady);
+			} else if (limit <= 0) {
 				clearInterval(apiReady);
 			}
 			limit -= 1;
@@ -741,15 +740,18 @@ var pubdefend = (function () {
 				loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
 					console.log("pubdefend:: paho lib ready");
 
-					var ws = new MqttClient();
-					var listenToWs = window.addEventListener(
-						"wsLoaded",
-						function (e) {
-							console.log("listenToWs", e.detail);
-							ws.pub(JSON.stringify(getStore()));
-						},
-						true
-					);
+					try {
+						var ws = new MqttClient();
+						var listenToWs = window.addEventListener(
+							"wsLoaded",
+							function (e) {
+								pd.wsIsReady = true;
+								console.log("listenToWs", e.detail);
+								ws.pub(JSON.stringify(getStore()));
+							},
+							{ once: true }
+						);
+					} catch (err) {}
 				});
 			});
 		});

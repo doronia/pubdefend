@@ -114,7 +114,7 @@ module.exports = [
 			resolve({
 				browser: true,
 			}),
-			/* babel({
+			babel({
 				exclude: "node_modules/**",
 				babelrc: false,
 				presets: [
@@ -131,7 +131,7 @@ module.exports = [
 						},
 					],
 				],
-			}), */
+			}),
 			commonjs(),
 			replace({
 				exclude: "node_modules/**",

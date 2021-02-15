@@ -24,7 +24,7 @@ export function Slots() {
 		});
 }
 
-export function gtagHandler(g, callback) {
+export function gtagHandler(callback) {
 	var gtag = window["googletag"];
 
 	/* googletag defined Slots */

@@ -628,7 +628,7 @@ var pubdefend = (function () {
 	var _store = pd.store;
 	var solts_req = 0,
 	    rendered = false;
-	function gtagHandler(g, callback) {
+	function gtagHandler(callback) {
 	  var gtag = window["googletag"];
 	  /* googletag defined Slots */
 
@@ -831,7 +831,6 @@ var pubdefend = (function () {
 
 	pd.testcookie = testcookie;
 	pd.getStore = getStore;
-	var g = window["googletag"] ? window["googletag"] : false;
 	var ws;
 	var _store$1 = pd.store;
 
@@ -876,27 +875,21 @@ var pubdefend = (function () {
 	}
 
 	function gtagApiReady(callback) {
-	  if (g && g["apiReady"]) {
-	    console.debug("googaltag apiReady");
-	    clearInterval(apiReady);
-	    gtagHandler(g, callback);
-	  } else {
-	    var limit = 5;
-	    var gtag = window["googletag"];
-	    var apiReady = setInterval(function () {
-	      if (gtag && gtag["apiReady"]) {
-	        console.log("#" + limit, "googaltag apiReady");
-	        clearInterval(apiReady);
-	        gtagHandler(g, callback);
-	      }
+	  var limit = 5;
+	  var gtag = window["googletag"];
+	  var apiReady = setInterval(function () {
+	    if (gtag && gtag["apiReady"]) {
+	      console.log("#" + limit, "googaltag apiReady");
+	      clearInterval(apiReady);
+	      gtagHandler(callback);
+	    }
 
-	      if (limit <= 0) {
-	        clearInterval(apiReady);
-	      }
+	    if (limit <= 0) {
+	      clearInterval(apiReady);
+	    }
 
-	      limit -= 1;
-	    }, 100);
-	  }
+	    limit -= 1;
+	  }, 100);
 	}
 
 	if (runningOnBrowser && !isBot) {

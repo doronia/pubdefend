@@ -68,25 +68,19 @@ function isReady(callback) {
 }
 
 function gtagApiReady(callback) {
-	if (g && g["apiReady"]) {
-		console.debug("googaltag apiReady");
-		clearInterval(apiReady);
-		gtagHandler(g, callback);
-	} else {
-		var limit = 5;
-		var gtag = window["googletag"];
-		var apiReady = setInterval(function () {
-			if (gtag && gtag["apiReady"]) {
-				console.log("#" + limit, "googaltag apiReady");
-				clearInterval(apiReady);
-				gtagHandler(g, callback);
-			}
-			if (limit <= 0) {
-				clearInterval(apiReady);
-			}
-			limit -= 1;
-		}, 100);
-	}
+	var limit = 5;
+	var gtag = window["googletag"];
+	var apiReady = setInterval(function () {
+		if (gtag && gtag["apiReady"]) {
+			console.log("#" + limit, "googaltag apiReady");
+			clearInterval(apiReady);
+			gtagHandler(callback);
+		}
+		if (limit <= 0) {
+			clearInterval(apiReady);
+		}
+		limit -= 1;
+	}, 100);
 }
 
 if (runningOnBrowser && !isBot) {

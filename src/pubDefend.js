@@ -7,7 +7,7 @@ import { testcookie, store, getStore } from "./pubdefend.events";
 import { gtagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
-
+import { customEvent } from "./pubdefend.events";
 import { MqttClient, createInstance } from "./pubdefend.mqtt";
 
 /* Polyfills*/
@@ -19,8 +19,7 @@ pd.getStore = getStore;
 
 var w = window;
 var g = window["googletag"] ? window["googletag"] : false;
-//d = document;
-
+var ws;
 var _store = pd.store;
 
 var options = {
@@ -64,6 +63,7 @@ function isReady(callback) {
 
 	/** AD blocker bait  */
 	var testBait = bait(function (data) {
+		customEvent("ab", data);
 		store(_store, "blocked", data);
 	});
 
@@ -74,30 +74,35 @@ function isReady(callback) {
 }
 
 function gtagApiReady(callback) {
-	var limit = 5,
-		g = window["googletag"];
-	var apiReady = setInterval(function () {
-		console.log(limit);
-		if (g && g["apiReady"]) {
-			console.debug("googaltag apiReady:", g && g["apiReady"]);
-			gtagHandler(g, callback);
-			clearInterval(apiReady);
-		}
-		if (limit <= 0) {
-			clearInterval(apiReady);
-		}
-		limit -= 1;
-	}, 300);
+	if (g && g["apiReady"]) {
+		console.debug("googaltag apiReady:", g && g["apiReady"]);
+		clearInterval(apiReady);
+		gtagHandler(g, callback);
+	} else {
+		var limit = 5;
+		var gtag = window["googletag"];
+		var apiReady = setInterval(function () {
+			console.log(limit);
+			if (gtag && gtag["apiReady"]) {
+				console.debug("googaltag apiReady");
+				clearInterval(apiReady);
+				gtagHandler(g, callback);
+			}
+			if (limit <= 0) {
+				clearInterval(apiReady);
+			}
+			limit -= 1;
+		}, 100);
+	}
 }
-
-gtagApiReady(function (status) {
-	console.log("gtag::", status);
-});
 
 if (runningOnBrowser && !isBot) {
 	documentReady(function () {
 		console.log("pubdefend:: init..");
 
+		gtagApiReady(function (status) {
+			console.log("gtag::", status);
+		});
 		/**
 		 * Load Paho mqtt lib.
 		 * TODO:
@@ -111,16 +116,34 @@ if (runningOnBrowser && !isBot) {
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
 				console.log("pubdefend:: paho lib ready");
 
-				var ws = new MqttClient();
-				var listenToWs = window.addEventListener(
-					"wsLoaded",
-					function (e) {
-						console.log("listenToWs", e.detail);
-						ws.pub(JSON.stringify(getStore()));
-					},
-					true
-				);
+				ws = new MqttClient();
 			});
+
+			window.addEventListener(
+				"wsLoaded",
+				function (e) {
+					pd.state.ws = true;
+					console.log("listenToWs", e.detail);
+					ws.pub(JSON.stringify(getStore()));
+				},
+				true
+			);
+			window.addEventListener(
+				"impr",
+				function (e) {
+					pd.state.g = true;
+					console.log("impr", e.detail);
+				},
+				true
+			);
+			window.addEventListener(
+				"ab",
+				function (e) {
+					pd.state.ab = true;
+					console.log("ab", e.detail);
+				},
+				true
+			);
 		});
 	});
 }

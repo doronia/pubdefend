@@ -3,6 +3,7 @@ var pubdefend = (function () {
 
 	var pd = window.pubDefend || window.pubdefend || {};
 	pd.debug = true;
+	pd.state = {};
 	pd.store = {};
 	pd.eventQueue = [];
 	pd.slotsQueue = [];
@@ -201,6 +202,15 @@ var pubdefend = (function () {
 	}
 
 	var entries = Object.entries ? Object.entries : entriesPolyFill;
+	var isArray = function isArray(obj) {
+	  if (!Array.isArray) {
+	    Array.isArray = function (arg) {
+	      return Object.prototype.toString.call(arg) === "[object Array]";
+	    };
+	  } else {
+	    return Array.isArray;
+	  }
+	};
 
 	function murmurhash3_32_gc(key) {
 	  var remainder = key.length & 3; // key.length % 4
@@ -542,7 +552,7 @@ var pubdefend = (function () {
 	  } catch (err) {
 	    event = document.createEvent("CustomEvent");
 	    event.initCustomEvent(eventString, false, false, {
-	      instance: instance
+	      data: data
 	    });
 	  }
 
@@ -616,68 +626,68 @@ var pubdefend = (function () {
 	};
 
 	var _store = pd.store;
-	var solts_req = 0;
-	function Slots() {
-	  return window.googletag.pubads().getSlots().map(function (slot) {
-	    return {
-	      adUnitPath: slot.getAdUnitPath(),
-	      responseInformation: slot.getResponseInformation()
-	    };
-	  });
-	}
+	var solts_req = 0,
+	    rendered = false;
 	function gtagHandler(g, callback) {
-	  var getslots = Slots();
-	  var getAllEvents = window.googletag.getEventLog().getAllEvents();
-	  listenForSlotsCallback(getAllEvents);
-	  console.debug("getAllEvents", getAllEvents);
-	  solts_req = g.pubads().getSlots().length;
-	  console.log("googaltag slots:", solts_req);
-	  store(_store, "gtag_slots", solts_req);
-	  /* listenForSlots */
-	  //if (!_store.ab) {
-	  //console.debug("pubdefend:: No adblocker detected. listen to gtag");
-	  //g.addEventListener("slotRenderEnded", listenForSlots, false);
+	  var gtag = window["googletag"];
+	  /* googletag defined Slots */
 
-	  /* googletag.pubads().addEventListener("slotRenderEnded", function (event) {
-	  	var slot = event.slot;
-	  	console.group("Slot", slot.getSlotElementId(), "finished rendering.");
-	  
-	  	// Log details of the rendered ad.
-	  	console.log("Advertiser ID:", event.advertiserId);
-	  	console.log("Campaign ID: ", event.campaignId);
-	  	console.log("Creative ID: ", event.creativeId);
-	  	console.log("Is empty?:", event.isEmpty);
-	  	console.log("Line Item ID:", event.lineItemId);
-	  	console.log("Size:", event.size);
-	  	console.log("Source Agnostic Creative ID:", event.sourceAgnosticCreativeId);
-	  	console.log("Source Agnostic Line Item ID:", event.sourceAgnosticLineItemId);
-	  	console.groupEnd();
-	  }); */
-	  //Listener = g.addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
-	  //} else {
+	  solts_req = googletag.pubads().getSlots().length;
+	  store(_store, "gtag_slots", solts_req);
+	  console.log("googaltag slots:", solts_req);
+	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	  if (callback) {
 	    callback("blocked");
-	  } //}
-
+	  }
 
 	  return;
-	} //var listenForSlots = function (callback, event) {
+	}
+
+	var listenForSlots = function listenForSlots(callback, event) {
+	  //var listenForSlots = function (event) {
+	  var slot = event.slot; //console.log(slot);
+
+	  var id = slot.getSlotElementId();
+	  var elm = document.getElementById(id); //var isItVisible = checkIfVisible(elm);
+	  //solts_arr[id] = true;
+	  //solts_arr[id] = { render: true, visible: isItVisible };
+
+	  console.group("Slot", slot.getSlotElementId(), "finished rendering.");
+	  console.log("Is empty?:", event.isEmpty);
+	  console.log("Size:", event.size);
+	  console.groupEnd(); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
+	  //console.log("solts_arr", solts_arr);
+
+	  if (!rendered) {
+	    var gtagFindElements = domQuery.find('div[id*="google_ad"]');
+	    store(_store, "gtag_impr", gtagFindElements.length);
+	    customEvent("impr", gtagFindElements.length);
+
+	    if (callback) {
+	      callback(gtagFindElements);
+	    }
+	  }
+
+	  rendered = true;
+	};
 
 	var listenForSlotsCallback = function listenForSlotsCallback(arr) {
-	  var slotElementId = {};
-	  arr.forEach(function (val) {
-	    if (val.m) {
-	      var id = val.m.getSlotElementId();
+	  if (isArray()) {
+	    var slotElementId = {};
+	    arr.forEach(function (val) {
+	      var type = val.firstElementChild.nodeName ? val.firstElementChild.nodeName : false;
 
-	      if (!slotElementId.hasOwnProperty(id)) {
-	        slotElementId[id] = id;
+	      if (type) {
+	        slotElementId[val.parentElement.id] = {
+	          type: val.firstElementChild.nodeName,
+	          id: val.firstElementChild.id
+	        };
 	      }
-	    }
-	  });
-	  console.debug(slotElementId);
-	  var gtagFindElements = domQuery.find('iframe[id*="google_ad"]');
-	  console.log(gtagFindElements); //console.log(getStore());
+	    });
+	    slotElementId.slots = Object.keys(slotElementId).length;
+	    console.table(slotElementId);
+	  }
 	};
 
 	var endpoint = config.endpoints;
@@ -821,7 +831,8 @@ var pubdefend = (function () {
 
 	pd.testcookie = testcookie;
 	pd.getStore = getStore;
-
+	var g = window["googletag"] ? window["googletag"] : false;
+	var ws;
 	var _store$1 = pd.store;
 
 	function isReady(callback) {
@@ -859,6 +870,7 @@ var pubdefend = (function () {
 	  /** AD blocker bait  */
 
 	  var testBait = bait(function (data) {
+	    customEvent("ab", data);
 	    store(_store$1, "blocked", data);
 	  });
 
@@ -870,32 +882,37 @@ var pubdefend = (function () {
 	}
 
 	function gtagApiReady(callback) {
-	  var limit = 5,
-	      g = window["googletag"];
-	  var apiReady = setInterval(function () {
-	    console.log(limit);
+	  if (g && g["apiReady"]) {
+	    console.debug("googaltag apiReady:", g && g["apiReady"]);
+	    clearInterval(apiReady);
+	    gtagHandler(g, callback);
+	  } else {
+	    var limit = 5;
+	    var gtag = window["googletag"];
+	    var apiReady = setInterval(function () {
+	      console.log(limit);
 
-	    if (g && g["apiReady"]) {
-	      console.debug("googaltag apiReady:", g && g["apiReady"]);
-	      gtagHandler(g, callback);
-	      clearInterval(apiReady);
-	    }
+	      if (gtag && gtag["apiReady"]) {
+	        console.debug("googaltag apiReady");
+	        clearInterval(apiReady);
+	        gtagHandler(g, callback);
+	      }
 
-	    if (limit <= 0) {
-	      clearInterval(apiReady);
-	    }
+	      if (limit <= 0) {
+	        clearInterval(apiReady);
+	      }
 
-	    limit -= 1;
-	  }, 300);
+	      limit -= 1;
+	    }, 100);
+	  }
 	}
-
-	gtagApiReady(function (status) {
-	  console.log("gtag::", status);
-	});
 
 	if (runningOnBrowser && !isBot) {
 	  documentReady(function () {
 	    console.log("pubdefend:: init..");
+	    gtagApiReady(function (status) {
+	      console.log("gtag::", status);
+	    });
 	    /**
 	     * Load Paho mqtt lib.
 	     * TODO:
@@ -908,12 +925,21 @@ var pubdefend = (function () {
 	      console.log("pubdefend:: Loading paho lib");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
 	        console.log("pubdefend:: paho lib ready");
-	        var ws = new MqttClient();
-	        var listenToWs = window.addEventListener("wsLoaded", function (e) {
-	          console.log("listenToWs", e.detail);
-	          ws.pub(JSON.stringify(getStore()));
-	        }, true);
+	        ws = new MqttClient();
 	      });
+	      window.addEventListener("wsLoaded", function (e) {
+	        pd.state.ws = true;
+	        console.log("listenToWs", e.detail);
+	        ws.pub(JSON.stringify(getStore()));
+	      }, true);
+	      window.addEventListener("impr", function (e) {
+	        pd.state.g = true;
+	        console.log("impr", e.detail);
+	      }, true);
+	      window.addEventListener("ab", function (e) {
+	        pd.state.ab = true;
+	        console.log("ab", e.detail);
+	      }, true);
 	    });
 	  });
 	}

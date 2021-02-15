@@ -68,7 +68,7 @@ export function customEvent(name, details) {
 		event = new CustomEvent(eventString, { detail: { data } });
 	} catch (err) {
 		event = document.createEvent("CustomEvent");
-		event.initCustomEvent(eventString, false, false, { instance });
+		event.initCustomEvent(eventString, false, false, { data });
 	}
 	window.dispatchEvent(event);
 }

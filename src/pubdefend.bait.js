@@ -1,4 +1,5 @@
 import { config } from "./pubdefend.config";
+import { customEvent } from "./pubdefend.events";
 
 var endpoint = config.endpoints;
 

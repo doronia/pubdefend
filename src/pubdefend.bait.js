@@ -1,9 +1,7 @@
 import { config } from "./pubdefend.config";
-import { customEvent } from "./pubdefend.events";
-
-var endpoint = config.endpoints;
 
 export function bait(callback) {
+	var endpoint = config.endpoints;
 	var url = "https://" + endpoint.cdn + "." + endpoint.domain + "/js/" + endpoint.bait;
 	var xhr = new XMLHttpRequest();
 	xhr.open("HEAD", url, true);

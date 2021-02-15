@@ -686,12 +686,12 @@ var pubdefend = (function () {
 	      }
 	    });
 	    slotElementId.slots = Object.keys(slotElementId).length;
-	    console.table(slotElementId);
+	    console.debug(slotElementId);
 	  }
 	};
 
-	var endpoint = config.endpoints;
 	function bait(callback) {
+	  var endpoint = config.endpoints;
 	  var url = "https://" + endpoint.cdn + "." + endpoint.domain + "/js/" + endpoint.bait;
 	  var xhr = new XMLHttpRequest();
 	  xhr.open("HEAD", url, true);
@@ -867,12 +867,6 @@ var pubdefend = (function () {
 
 	  store(_store$1, "browser", _browser);
 	  store(_store$1, "isMobile", isMobile);
-	  /** AD blocker bait  */
-
-	  var testBait = bait(function (data) {
-	    customEvent("ab", data);
-	    store(_store$1, "blocked", data);
-	  });
 
 	  if (callback) {
 	    callback("isReady");
@@ -883,17 +877,15 @@ var pubdefend = (function () {
 
 	function gtagApiReady(callback) {
 	  if (g && g["apiReady"]) {
-	    console.debug("googaltag apiReady:", g && g["apiReady"]);
+	    console.debug("googaltag apiReady");
 	    clearInterval(apiReady);
 	    gtagHandler(g, callback);
 	  } else {
 	    var limit = 5;
 	    var gtag = window["googletag"];
 	    var apiReady = setInterval(function () {
-	      console.log(limit);
-
 	      if (gtag && gtag["apiReady"]) {
-	        console.debug("googaltag apiReady");
+	        console.log("#" + limit, "googaltag apiReady");
 	        clearInterval(apiReady);
 	        gtagHandler(g, callback);
 	      }
@@ -921,24 +913,30 @@ var pubdefend = (function () {
 	     */
 
 	    isReady(function (status) {
+	      /** AD blocker bait  */
+	      var testBait = bait(function (data) {
+	        customEvent("ab", data);
+	        store(_store$1, "blocked", data);
+	      });
 	      console.log("pubdefend::", status);
 	      console.log("pubdefend:: Loading paho lib");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
-	        console.log("pubdefend:: paho lib ready");
+	        console.debug("pubdefend:: paho lib ready");
 	        ws = new MqttClient();
 	      });
 	      window.addEventListener("wsLoaded", function (e) {
 	        pd.state.ws = true;
-	        console.log("listenToWs", e.detail);
+	        console.debug("pubdefend:: event-listen To Ws", e.detail);
+	        console.debug(getStore());
 	        ws.pub(JSON.stringify(getStore()));
 	      }, true);
 	      window.addEventListener("impr", function (e) {
 	        pd.state.g = true;
-	        console.log("impr", e.detail);
+	        console.debug("pubdefend:: event-impr", e.detail);
 	      }, true);
 	      window.addEventListener("ab", function (e) {
 	        pd.state.ab = true;
-	        console.log("ab", e.detail);
+	        console.debug("pubdefend:: event-ab", e.detail);
 	      }, true);
 	    });
 	  });

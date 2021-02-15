@@ -80,6 +80,6 @@ var listenForSlotsCallback = function (arr) {
 			}
 		});
 		slotElementId.slots = Object.keys(slotElementId).length;
-		console.table(slotElementId);
+		console.debug(slotElementId);
 	}
 };

@@ -1,8 +1,8 @@
 var pubdefend = (function () {
 	'use strict';
 
-	var pd = window.pubDefend || window.pubdefend || {};
-	pd.debug = true;
+	var pd = window.pubDefend || window.pubdefend || {}; //pd.debug = true;
+
 	pd.state = {};
 	pd.store = {};
 	pd.eventQueue = [];
@@ -21,6 +21,34 @@ var pubdefend = (function () {
 	  },
 	  queue: []
 	};
+
+	function log(isDebug) {
+	  if (isDebug && window.console && typeof console.log === "function") {
+	    window.logger = {
+	      log: window.console.log.bind(console.log),
+	      error: window.console.error.bind(console.error),
+	      info: window.console.info.bind(console.info),
+	      warn: window.console.warn.bind(console.warn),
+	      //table: window.console.table.bind(console.table),
+	      group: window.console.group.bind(console.group),
+	      groupEnd: window.console.groupEnd.bind(console.groupEnd),
+	      debug: window.console.debug.bind(console.debug)
+	    };
+	  } else {
+	    var __no_op = function __no_op() {};
+
+	    window.logger = {
+	      log: __no_op,
+	      error: __no_op,
+	      warn: __no_op,
+	      info: __no_op,
+	      //table: __no_op,
+	      group: __no_op,
+	      groupEnd: __no_op,
+	      debug: __no_op
+	    };
+	  }
+	}
 
 	var runningOnBrowser = typeof window !== "undefined"; //export const isBot = runningOnBrowser || (typeof navigator !== "undefined" && /(gle|ing|ro)bot|crawl|spider/i.test(navigator.userAgent));
 
@@ -634,7 +662,7 @@ var pubdefend = (function () {
 
 	  solts_req = googletag.pubads().getSlots().length;
 	  store(_store, "gtag_slots", solts_req);
-	  console.log("googaltag slots:", solts_req);
+	  logger.log("googaltag slots:", solts_req);
 	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	  if (callback) {
@@ -646,18 +674,18 @@ var pubdefend = (function () {
 
 	var listenForSlots = function listenForSlots(callback, event) {
 	  //var listenForSlots = function (event) {
-	  var slot = event.slot; //console.log(slot);
+	  var slot = event.slot; //logger.log(slot);
 
 	  var id = slot.getSlotElementId();
 	  var elm = document.getElementById(id); //var isItVisible = checkIfVisible(elm);
 	  //solts_arr[id] = true;
 	  //solts_arr[id] = { render: true, visible: isItVisible };
 
-	  console.group("Slot", slot.getSlotElementId(), "finished rendering.");
-	  console.log("Is empty?:", event.isEmpty);
-	  console.log("Size:", event.size);
-	  console.groupEnd(); //console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
-	  //console.log("solts_arr", solts_arr);
+	  logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
+	  logger.log("Is empty?:", event.isEmpty);
+	  logger.log("Size:", event.size);
+	  logger.groupEnd(); //logger.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
+	  //logger.log("solts_arr", solts_arr);
 
 	  if (!rendered) {
 	    var gtagFindElements = domQuery.find('div[id*="google_ad"]');
@@ -686,7 +714,7 @@ var pubdefend = (function () {
 	      }
 	    });
 	    slotElementId.slots = Object.keys(slotElementId).length;
-	    console.debug(slotElementId);
+	    logger.debug(slotElementId);
 	  }
 	};
 
@@ -743,7 +771,7 @@ var pubdefend = (function () {
 
 
 	  function Connected() {
-	    console.log("pubdefend:: ws Connected");
+	    logger.log("pubdefend:: ws Connected");
 	    self.client.subscribe(self.topic, {
 	      qos: 1
 	    });
@@ -753,21 +781,21 @@ var pubdefend = (function () {
 
 
 	  function ConnectionFailed(res) {
-	    console.log("Connect failed:" + res.errorMessage);
+	    logger.log("Connect failed:" + res.errorMessage);
 	  }
 	  /*Callback for lost connection*/
 
 
 	  function ConnectionLost(res) {
 	    if (res.errorCode !== 0) {
-	      console.log("Connection lost:" + res.errorMessage);
+	      logger.log("Connection lost:" + res.errorMessage);
 	      Connect();
 	    }
 	  }
 	  /*Callback for incoming message processing */
 
 
-	  function MessageArrived(message) {//console.log(message.destinationName + " : " + message.payloadString);
+	  function MessageArrived(message) {//logger.log(message.destinationName + " : " + message.payloadString);
 
 	    /* switch (message.payloadString) {
 	    	case "ON":
@@ -813,7 +841,7 @@ var pubdefend = (function () {
 	    if (!data) return;
 	    var message = new Paho.MQTT.Message(data);
 	    message.destinationName = self.topic; //debug("SEND ON " + message.destinationName + " PAYLOAD " + data);
-	    //console.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
+	    //logger.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
 
 	    if (callback) {
 	      setTimeout(callback);
@@ -827,7 +855,7 @@ var pubdefend = (function () {
 
 	/* Polyfills*/
 	//import 'core-js/features/promise';
-	//Promise.resolve(32).then(x => console.log(x));
+	//Promise.resolve(32).then(x => logger.log(x));
 
 	pd.testcookie = testcookie;
 	pd.getStore = getStore;
@@ -879,7 +907,7 @@ var pubdefend = (function () {
 	  var gtag = window["googletag"];
 	  var apiReady = setInterval(function () {
 	    if (gtag && gtag["apiReady"]) {
-	      console.log("#" + limit, "googaltag apiReady");
+	      logger.log("#" + limit, "googaltag apiReady");
 	      clearInterval(apiReady);
 	      gtagHandler(callback);
 	    }
@@ -893,10 +921,11 @@ var pubdefend = (function () {
 	}
 
 	if (runningOnBrowser && !isBot) {
+	  log(pd.debug);
 	  documentReady(function () {
-	    console.log("pubdefend:: init..");
+	    logger.log("pubdefend:: init..");
 	    gtagApiReady(function (status) {
-	      console.log("gtag::", status);
+	      logger.log("gtag::", status);
 	    });
 	    /**
 	     * Load Paho mqtt lib.
@@ -911,25 +940,25 @@ var pubdefend = (function () {
 	        customEvent("ab", data);
 	        store(_store$1, "blocked", data);
 	      });
-	      console.log("pubdefend::", status);
-	      console.log("pubdefend:: Loading paho lib");
+	      logger.log("pubdefend::", status);
+	      logger.log("pubdefend:: Loading paho lib");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
-	        console.debug("pubdefend:: paho lib ready");
+	        logger.info("pubdefend:: paho lib ready");
 	        ws = new MqttClient();
 	      });
 	      window.addEventListener("wsLoaded", function (e) {
 	        pd.state.ws = true;
-	        console.debug("pubdefend:: event-listen To Ws", e.detail);
-	        console.debug(getStore());
+	        logger.info("pubdefend:: event-listen To Ws", e.detail);
+	        logger.info(getStore());
 	        ws.pub(JSON.stringify(getStore()));
 	      }, true);
 	      window.addEventListener("impr", function (e) {
 	        pd.state.g = true;
-	        console.debug("pubdefend:: event-impr", e.detail);
+	        logger.info("pubdefend:: event-impr", e.detail);
 	      }, true);
 	      window.addEventListener("ab", function (e) {
 	        pd.state.ab = true;
-	        console.debug("pubdefend:: event-ab", e.detail);
+	        logger.info("pubdefend:: event-ab", e.detail);
 	      }, true);
 	    });
 	  });

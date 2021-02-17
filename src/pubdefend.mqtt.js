@@ -31,7 +31,7 @@ export function MqttClient() {
 
 	/*Callback for successful MQTT connection */
 	function Connected() {
-		console.log("pubdefend:: ws Connected");
+		logger.log("pubdefend:: ws Connected");
 		self.client.subscribe(self.topic, {
 			qos: 1,
 		});
@@ -41,13 +41,13 @@ export function MqttClient() {
 
 	/*Callback for failed connection*/
 	function ConnectionFailed(res) {
-		console.log("Connect failed:" + res.errorMessage);
+		logger.log("Connect failed:" + res.errorMessage);
 	}
 
 	/*Callback for lost connection*/
 	function ConnectionLost(res) {
 		if (res.errorCode !== 0) {
-			console.log("Connection lost:" + res.errorMessage);
+			logger.log("Connection lost:" + res.errorMessage);
 			Connect();
 		}
 	}
@@ -55,7 +55,7 @@ export function MqttClient() {
 	/*Callback for incoming message processing */
 
 	function MessageArrived(message) {
-		//console.log(message.destinationName + " : " + message.payloadString);
+		//logger.log(message.destinationName + " : " + message.payloadString);
 		/* switch (message.payloadString) {
 			case "ON":
 				displayClass = "on";
@@ -101,7 +101,7 @@ export function MqttClient() {
 		var message = new Paho.MQTT.Message(data);
 		message.destinationName = self.topic;
 		//debug("SEND ON " + message.destinationName + " PAYLOAD " + data);
-		//console.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
+		//logger.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
 		if (callback) {
 			setTimeout(callback);
 		}

@@ -1,5 +1,6 @@
 import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
+import { log } from "./pubdefend.debug";
 
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
 import { documentReady, loadScript, detectPid, getHostName } from "./pubdefend.utils";
@@ -12,7 +13,7 @@ import { MqttClient, createInstance } from "./pubdefend.mqtt";
 
 /* Polyfills*/
 //import 'core-js/features/promise';
-//Promise.resolve(32).then(x => console.log(x));
+//Promise.resolve(32).then(x => logger.log(x));
 
 pd.testcookie = testcookie;
 pd.getStore = getStore;
@@ -72,7 +73,7 @@ function gtagApiReady(callback) {
 	var gtag = window["googletag"];
 	var apiReady = setInterval(function () {
 		if (gtag && gtag["apiReady"]) {
-			console.log("#" + limit, "googaltag apiReady");
+			logger.log("#" + limit, "googaltag apiReady");
 			clearInterval(apiReady);
 			gtagHandler(callback);
 		}
@@ -84,11 +85,12 @@ function gtagApiReady(callback) {
 }
 
 if (runningOnBrowser && !isBot) {
+	log(pd.debug);
 	documentReady(function () {
-		console.log("pubdefend:: init..");
+		logger.log("pubdefend:: init..");
 
 		gtagApiReady(function (status) {
-			console.log("gtag::", status);
+			logger.log("gtag::", status);
 		});
 		/**
 		 * Load Paho mqtt lib.
@@ -103,11 +105,11 @@ if (runningOnBrowser && !isBot) {
 				store(_store, "blocked", data);
 			});
 
-			console.log("pubdefend::", status);
-			console.log("pubdefend:: Loading paho lib");
+			logger.log("pubdefend::", status);
+			logger.log("pubdefend:: Loading paho lib");
 
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
-				console.debug("pubdefend:: paho lib ready");
+				logger.info("pubdefend:: paho lib ready");
 
 				ws = new MqttClient();
 			});
@@ -116,8 +118,8 @@ if (runningOnBrowser && !isBot) {
 				"wsLoaded",
 				function (e) {
 					pd.state.ws = true;
-					console.debug("pubdefend:: event-listen To Ws", e.detail);
-					console.debug(getStore());
+					logger.info("pubdefend:: event-listen To Ws", e.detail);
+					logger.info(getStore());
 					ws.pub(JSON.stringify(getStore()));
 				},
 				true
@@ -126,7 +128,7 @@ if (runningOnBrowser && !isBot) {
 				"impr",
 				function (e) {
 					pd.state.g = true;
-					console.debug("pubdefend:: event-impr", e.detail);
+					logger.info("pubdefend:: event-impr", e.detail);
 				},
 				true
 			);
@@ -134,7 +136,7 @@ if (runningOnBrowser && !isBot) {
 				"ab",
 				function (e) {
 					pd.state.ab = true;
-					console.debug("pubdefend:: event-ab", e.detail);
+					logger.info("pubdefend:: event-ab", e.detail);
 				},
 				true
 			);

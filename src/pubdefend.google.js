@@ -30,7 +30,7 @@ export function gtagHandler(callback) {
 	/* googletag defined Slots */
 	solts_req = googletag.pubads().getSlots().length;
 	store(_store, "gtag_slots", solts_req);
-	console.log("googaltag slots:", solts_req);
+	logger.log("googaltag slots:", solts_req);
 
 	Listener = gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
@@ -44,7 +44,7 @@ export function gtagHandler(callback) {
 var listenForSlots = function (callback, event) {
 	//var listenForSlots = function (event) {
 	var slot = event.slot;
-	//console.log(slot);
+	//logger.log(slot);
 
 	var id = slot.getSlotElementId();
 	var elm = document.getElementById(id);
@@ -52,12 +52,12 @@ var listenForSlots = function (callback, event) {
 	//solts_arr[id] = true;
 	//solts_arr[id] = { render: true, visible: isItVisible };
 
-	console.group("Slot", slot.getSlotElementId(), "finished rendering.");
-	console.log("Is empty?:", event.isEmpty);
-	console.log("Size:", event.size);
-	console.groupEnd();
-	//console.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
-	//console.log("solts_arr", solts_arr);
+	logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
+	logger.log("Is empty?:", event.isEmpty);
+	logger.log("Size:", event.size);
+	logger.groupEnd();
+	//logger.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
+	//logger.log("solts_arr", solts_arr);
 
 	if (!rendered) {
 		var gtagFindElements = domQuery.find('div[id*="google_ad"]');
@@ -80,6 +80,6 @@ var listenForSlotsCallback = function (arr) {
 			}
 		});
 		slotElementId.slots = Object.keys(slotElementId).length;
-		console.debug(slotElementId);
+		logger.debug(slotElementId);
 	}
 };

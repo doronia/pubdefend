@@ -110,7 +110,6 @@ if (runningOnBrowser && !isBot) {
 
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
 				logger.info("pubdefend:: paho lib ready");
-
 				ws = new MqttClient();
 			});
 

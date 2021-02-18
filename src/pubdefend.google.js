@@ -48,9 +48,9 @@ var listenForSlots = function (callback, event) {
 
 	var id = slot.getSlotElementId();
 	var elm = document.getElementById(id);
-	//var isItVisible = checkIfVisible(elm);
+	var isItVisible = checkIfVisible(elm);
 	//solts_arr[id] = true;
-	//solts_arr[id] = { render: true, visible: isItVisible };
+	solts_arr[id] = { 0: true, 1: isItVisible, 2: event.isEmpty, 3: event.size };
 
 	logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
 	logger.log("Is empty?:", event.isEmpty);
@@ -81,5 +81,6 @@ var listenForSlotsCallback = function (arr) {
 		});
 		slotElementId.slots = Object.keys(slotElementId).length;
 		logger.debug(slotElementId);
+		logger.debug("solts_arr", solts_arr);
 	}
 };

@@ -652,9 +652,31 @@ var pubdefend = (function () {
 	    return this.htmlCollectionToArray(foundNodes);
 	  }
 	};
+	function checkIfVisible(el) {
+	  if (!el) {
+	    return false;
+	  }
+
+	  function _getStyle(el, property) {
+	    if (window.getComputedStyle) {
+	      return document.defaultView.getComputedStyle(el, null)[property];
+	    }
+
+	    if (el.currentStyle) {
+	      return el.currentStyle[property];
+	    }
+	  }
+
+	  if ("0" === _getStyle(el, "opacity") || "none" === _getStyle(el, "display") || "hidden" === _getStyle(el, "visibility")) {
+	    return false;
+	  }
+
+	  return true;
+	}
 
 	var _store = pd.store;
-	var solts_req = 0,
+	var solts_arr = {},
+	    solts_req = 0,
 	    rendered = false;
 	function gtagHandler(callback) {
 	  var gtag = window["googletag"];
@@ -677,10 +699,15 @@ var pubdefend = (function () {
 	  var slot = event.slot; //logger.log(slot);
 
 	  var id = slot.getSlotElementId();
-	  var elm = document.getElementById(id); //var isItVisible = checkIfVisible(elm);
-	  //solts_arr[id] = true;
-	  //solts_arr[id] = { render: true, visible: isItVisible };
+	  var elm = document.getElementById(id);
+	  var isItVisible = checkIfVisible(elm); //solts_arr[id] = true;
 
+	  solts_arr[id] = {
+	    0: true,
+	    1: isItVisible,
+	    2: event.isEmpty,
+	    3: event.size
+	  };
 	  logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
 	  logger.log("Is empty?:", event.isEmpty);
 	  logger.log("Size:", event.size);
@@ -715,6 +742,7 @@ var pubdefend = (function () {
 	    });
 	    slotElementId.slots = Object.keys(slotElementId).length;
 	    logger.debug(slotElementId);
+	    logger.debug("solts_arr", solts_arr);
 	  }
 	};
 

@@ -108,7 +108,7 @@ if (runningOnBrowser && !isBot) {
 			logger.log("pubdefend::", status);
 			logger.log("pubdefend:: Loading paho lib");
 
-			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
+			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
 				logger.info("pubdefend:: paho lib ready");
 
 				ws = new MqttClient();
@@ -118,7 +118,7 @@ if (runningOnBrowser && !isBot) {
 				"wsLoaded",
 				function (e) {
 					pd.state.ws = true;
-					logger.info("pubdefend:: event-listen To Ws", e.detail);
+					logger.info("pubdefend[event]:: listen To Ws", e.detail);
 					logger.info(getStore());
 					ws.pub(JSON.stringify(getStore()));
 				},
@@ -128,7 +128,7 @@ if (runningOnBrowser && !isBot) {
 				"impr",
 				function (e) {
 					pd.state.g = true;
-					logger.info("pubdefend:: event-impr", e.detail);
+					logger.info("pubdefend[event]:: impr", e.detail);
 				},
 				true
 			);
@@ -136,7 +136,7 @@ if (runningOnBrowser && !isBot) {
 				"ab",
 				function (e) {
 					pd.state.ab = true;
-					logger.info("pubdefend:: event-ab", e.detail);
+					logger.info("pubdefend[event]:: ab", e.detail);
 				},
 				true
 			);

@@ -5,12 +5,24 @@ import commonjs from "@rollup/plugin-commonjs";
 import replace from "rollup-plugin-replace";
 import banner from "rollup-plugin-banner";
 
+import { decode, encode } from "universal-base64url";
+
 const { NODE_ENV = "development", DOMAIN = "" } = process.env;
 
 const isProduction = NODE_ENV === "production";
+
 const ANALYZE = process.env.ANALYZE ? process.env.ANALYZE === "true" : false;
 
 const publisher = isProduction ? "/" + DOMAIN + "/" : "";
+
+//var base64query = encode("domain:" + DOMAIN + ",analytics:true,block:soft");
+var base64query = encode("domain:" + DOMAIN);
+console.log(base64query);
+console.log(decode(base64query));
+
+const output = isProduction ? base64query : `pubdefendnd.js`;
+
+var terserReserved = ["googletag", "pubads", "isEmpty", "errorMessage", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"];
 
 const terserOptions_v2 = {
 	parse: {
@@ -24,7 +36,7 @@ const terserOptions_v2 = {
 		// mangle options
 
 		properties: {
-			reserved: ["googletag", "pubads", "errorMessage", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"],
+			reserved: terserReserved,
 			keep_quoted: true,
 		},
 	},
@@ -53,7 +65,7 @@ const terserOptions_prod = {
 		// mangle options
 
 		properties: {
-			reserved: ["googletag", "pubads", "errorMessage", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"],
+			reserved: terserReserved,
 			keep_quoted: true,
 		},
 	},
@@ -93,21 +105,24 @@ module.exports = [
 		input: "src/pubDefend.js",
 		output: [
 			{
+				//dev
 				file: "dist/pubDefend.iife.js",
 				name: "pubdefend",
 				format: "iife",
 			},
 			{
-				file: "dist/" + publisher + "pubDefend.iife.min.js",
+				//dev
+				file: "dist/pubDefend.iife.min.js",
 				name: "pubdefend",
 				format: "iife",
 				plugins: [terser(terserOptions_v2)],
 			},
 			{
-				file: "dist/" + publisher + "pubDefend.js",
+				//prod
+				file: "dist/" + publisher + output + ".js", //"dist/" + publisher + "pubDefend",
 				name: "pubdefend",
 				format: "iife",
-				plugins: [terser(terserOptions_prod), banner("PubDefend 1.1.1\nCopyright (c) 2020 Doron Miterani")],
+				plugins: [terser(terserOptions_prod), banner("PubDefend 1.1\nCopyright (c) 2021 Doron Miterani")],
 			},
 		],
 		plugins: [

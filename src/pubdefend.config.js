@@ -3,9 +3,9 @@ export var config = {
 	cookieName: "_pbdfndEvents",
 	cookieDomain: null,
 	endpoints: {
-		domain: "pubdefend.com",
+		base: "pubdefend.com",
 		cdn: "c",
-		websocket: "ws",
+		ws: "ws",
 		bait: "ad_banner.js",
 	},
 	queue: [],

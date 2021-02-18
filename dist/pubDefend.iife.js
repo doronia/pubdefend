@@ -14,9 +14,9 @@ var pubdefend = (function () {
 	  cookieName: "_pbdfndEvents",
 	  cookieDomain: null,
 	  endpoints: {
-	    domain: "pubdefend.com",
+	    base: "pubdefend.com",
 	    cdn: "c",
-	    websocket: "ws",
+	    ws: "ws",
 	    bait: "ad_banner.js"
 	  },
 	  queue: []
@@ -720,7 +720,7 @@ var pubdefend = (function () {
 
 	function bait(callback) {
 	  var endpoint = config.endpoints;
-	  var url = "https://" + endpoint.cdn + "." + endpoint.domain + "/js/" + endpoint.bait;
+	  var url = "https://" + endpoint.cdn + "." + endpoint.base + "/js/" + endpoint.bait;
 	  var xhr = new XMLHttpRequest();
 	  xhr.open("HEAD", url, true);
 
@@ -747,8 +747,7 @@ var pubdefend = (function () {
 	https://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html
 	 */
 	function MqttClient() {
-	  var host = "wss://ws.pubdefend.com/ws"; //config.endpoints.websocket + "." + config.endpoints.domain;
-
+	  var host = "wss://" + config.endpoints.ws + "." + config.endpoints.base + "/ws";
 	  var cid = "cid_" + parseInt(Math.random() * 100, 10);
 	  var self = this;
 	  self.topic = "test";
@@ -942,23 +941,23 @@ var pubdefend = (function () {
 	      });
 	      logger.log("pubdefend::", status);
 	      logger.log("pubdefend:: Loading paho lib");
-	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.domain + "/js/mqttws31.min.js", function () {
+	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
 	        logger.info("pubdefend:: paho lib ready");
 	        ws = new MqttClient();
 	      });
 	      window.addEventListener("wsLoaded", function (e) {
 	        pd.state.ws = true;
-	        logger.info("pubdefend:: event-listen To Ws", e.detail);
+	        logger.info("pubdefend[event]:: listen To Ws", e.detail);
 	        logger.info(getStore());
 	        ws.pub(JSON.stringify(getStore()));
 	      }, true);
 	      window.addEventListener("impr", function (e) {
 	        pd.state.g = true;
-	        logger.info("pubdefend:: event-impr", e.detail);
+	        logger.info("pubdefend[event]:: impr", e.detail);
 	      }, true);
 	      window.addEventListener("ab", function (e) {
 	        pd.state.ab = true;
-	        logger.info("pubdefend:: event-ab", e.detail);
+	        logger.info("pubdefend[event]:: ab", e.detail);
 	      }, true);
 	    });
 	  });

@@ -2,7 +2,7 @@ import { config } from "./pubdefend.config";
 
 export function bait(callback) {
 	var endpoint = config.endpoints;
-	var url = "https://" + endpoint.cdn + "." + endpoint.domain + "/js/" + endpoint.bait;
+	var url = "https://" + endpoint.cdn + "." + endpoint.base + "/js/" + endpoint.bait;
 	var xhr = new XMLHttpRequest();
 	xhr.open("HEAD", url, true);
 	xhr.onload = function (e) {

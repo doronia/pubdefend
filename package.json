@@ -5,7 +5,8 @@
     "main": "index.js",
     "scripts": {
         "build": "rollup -c",
-        "dev": "rollup -c --watch --environment DOMAIN:sponser.co.il"
+        "dev": "rollup -c --watch --environment NODE_ENV:production,DOMAIN:sponser.co.il",
+        "test": "node api.js"
     },
     "author": "",
     "license": "ISC",
@@ -25,6 +26,7 @@
         "@rollup/plugin-commonjs": "^17.1.0",
         "core-js": "^3.8.3",
         "paho-mqtt": "^1.1.0",
-        "rollup-plugin-uglify": "^6.0.4"
+        "rollup-plugin-uglify": "^6.0.4",
+        "universal-base64url": "^1.1.0"
     }
 }

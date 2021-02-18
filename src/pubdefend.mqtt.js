@@ -8,7 +8,7 @@ import { config } from "./pubdefend.config";
 import { customEvent } from "./pubdefend.events";
 
 export function MqttClient() {
-	var host = "wss://ws.pubdefend.com/ws"; //config.endpoints.websocket + "." + config.endpoints.domain;
+	var host = "wss://" + config.endpoints.ws + "." + config.endpoints.base + "/ws";
 	var cid = "cid_" + parseInt(Math.random() * 100, 10);
 	var self = this;
 

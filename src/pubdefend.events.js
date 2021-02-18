@@ -6,7 +6,7 @@ import { entries } from "./pubdefend.polyfills";
 import { appendLog } from "./pubdefend.logs";
 
 export const setCookie = function (name, value, ttl) {
-	Cookies.set(name, value, ttl, config.cookieDomain || config.domain);
+	Cookies.set(name, value, ttl, config.cookieDomain || config.endpoints.base);
 };
 
 export const getCookie = function (name) {

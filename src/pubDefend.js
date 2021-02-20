@@ -98,8 +98,10 @@ if (runningOnBrowser && !isBot) {
 
 			/** AD blocker bait  */
 			var testBait = bait(function (e) {
-				customEvent("ab", e.toString());
+				if (!e.toString()) return;
 				store(_store, "ab", e);
+				pd.state["ab"] = true;
+				customEvent("ab", e.toString());
 			});
 
 			logger.log("pubdefend:: Loading paho lib");
@@ -124,7 +126,6 @@ if (runningOnBrowser && !isBot) {
 			window.addEventListener(
 				"ab",
 				function (e) {
-					pd.state["ab"] = true;
 					console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
 
 					if (pd.state["ws"]) {

@@ -22,7 +22,7 @@ console.log(decode(base64query));
 
 const output = isProduction ? base64query : `pubdefendnd.js`;
 
-var terserReserved = ["googletag", "pubads", "isEmpty", "errorMessage", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"];
+var terserReserved = ["payload", "googletag", "pubads", "isEmpty", "errorMessage", "getSlots", "slot", "getSlotElementId", "getSlots", "getSlotId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost", "qos", "invocationContext", "destinationName"];
 
 const terserOptions_v2 = {
 	parse: {
@@ -91,7 +91,7 @@ const terserOptions = {
 	mangle: {
 		safari10: true,
 		properties: {
-			reserved: ["googletag", "pubads", "getSlots", "slot", "getSlotElementId", "client", "timeout", "userName", "password", "willMessage", "keepAliveInterval", "cleanSession", "useSSL", "invocationContext", "onSuccess", "onFailure", "hosts", "ports", "mqttVersion", "onMessageArrived", "onConnectionLost"],
+			reserved: terserReserved,
 			keep_quoted: true,
 		},
 	},

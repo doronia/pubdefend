@@ -1,25 +1,20 @@
 import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
 import { log } from "./pubdefend.debug";
-
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
 import { documentReady, loadScript, detectPid, getHostName } from "./pubdefend.utils";
-import { testcookie, store, getStore } from "./pubdefend.events";
-import { gtagHandler } from "./pubdefend.google";
+import { googletagHandler } from "./pubdefend.google";
 import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
-import { customEvent } from "./pubdefend.events";
-import { MqttClient, createInstance } from "./pubdefend.mqtt";
+import { customEvent, saveEventQueue, store, getStore } from "./pubdefend.events";
+import { MqttClient } from "./pubdefend.mqtt";
 
 /* Polyfills*/
 //import 'core-js/features/promise';
 //Promise.resolve(32).then(x => logger.log(x));
 
-pd.testcookie = testcookie;
 pd.getStore = getStore;
 
-var w = window;
-var g = window["googletag"] ? window["googletag"] : false;
 var ws;
 var _store = pd.store;
 
@@ -47,7 +42,7 @@ function isReady(callback) {
 	 */
 	var _p = {};
 	_p["hostname"] = getHostName(location.hostname);
-	_p["domain"] = pd.domain;
+	_p["domain"] = ENV ? ENV : undefined;
 	_p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
 	_p["pubid"] = detectPid("[pub-defend-property]").id;
 	store(_store, "publisher", _p);
@@ -73,9 +68,9 @@ function gtagApiReady(callback) {
 	var gtag = window["googletag"];
 	var apiReady = setInterval(function () {
 		if (gtag && gtag["apiReady"]) {
-			logger.log("#" + limit, "googaltag apiReady");
+			logger.log("googaltag:: apiReady (#" + limit + ")");
 			clearInterval(apiReady);
-			gtagHandler(callback);
+			googletagHandler(callback);
 		}
 		if (limit <= 0) {
 			clearInterval(apiReady);
@@ -89,8 +84,8 @@ if (runningOnBrowser && !isBot) {
 	documentReady(function () {
 		logger.log("pubdefend:: init..");
 
-		gtagApiReady(function (status) {
-			logger.log("gtag::", status);
+		gtagApiReady(function (res) {
+			if (res) logger.log("googaltag::", res);
 		});
 		/**
 		 * Load Paho mqtt lib.
@@ -99,43 +94,57 @@ if (runningOnBrowser && !isBot) {
 		 * - create instance of Paho class and raise event to start websocket connection and send method
 		 */
 		isReady(function (status) {
+			logger.log("pubdefend::", status);
+
 			/** AD blocker bait  */
-			var testBait = bait(function (data) {
-				customEvent("ab", data);
-				store(_store, "blocked", data);
+			var testBait = bait(function (e) {
+				customEvent("ab", e.toString());
+				store(_store, "ab", e);
 			});
 
-			logger.log("pubdefend::", status);
 			logger.log("pubdefend:: Loading paho lib");
-
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
 				logger.info("pubdefend:: paho lib ready");
 				ws = new MqttClient();
 			});
 
 			window.addEventListener(
-				"wsLoaded",
-				function (e) {
-					pd.state.ws = true;
-					logger.info("pubdefend[event]:: listen To Ws", e.detail);
-					logger.info(getStore());
-					ws.pub(JSON.stringify(getStore()));
-				},
-				true
-			);
-			window.addEventListener(
 				"impr",
 				function (e) {
-					pd.state.g = true;
-					logger.info("pubdefend[event]:: impr", e.detail);
+					pd.state["g"] = true;
+					console.log("pubdefend[impr Listener]:: ws", pd.state["ws"]);
+
+					if (pd.state["ws"]) {
+						saveEventQueue("impr", e.detail.payload);
+						console.log("pubdefend[EventQueue]:: impr", e.detail.payload);
+					}
 				},
 				true
 			);
 			window.addEventListener(
 				"ab",
 				function (e) {
-					pd.state.ab = true;
-					logger.info("pubdefend[event]:: ab", e.detail);
+					pd.state["ab"] = true;
+					console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
+
+					if (pd.state["ws"]) {
+						saveEventQueue("ab", e.detail.payload);
+						console.log("pubdefend[EventQueue]:: ab", e.detail.payload);
+					}
+				},
+				true
+			);
+			window.addEventListener(
+				"wsLoaded",
+				function (e) {
+					console.info("pubdefend[ws Listener]::", e.detail.payload);
+					console.info("pubdefend[ws]::", "is g?", pd.store.hasOwnProperty("g"));
+					console.info("pubdefend[ws]::", "is ab?", pd.store.hasOwnProperty("ab"));
+
+					logger.info(getStore());
+					ws.pub(JSON.stringify(getStore(true)));
+					pd.state["ws"] = true;
+					logger.log("pubdefend[status]:: ws", pd.state["ws"]);
 				},
 				true
 			);

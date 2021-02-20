@@ -1,13 +1,13 @@
 var pubdefend = (function () {
 	'use strict';
 
-	var pd = window.pubDefend || window.pubdefend || {}; //pd.debug = true;
-
-	pd.state = {};
+	var pd = window.pubDefend || window.pubdefend || {};
+	pd.state = {
+	  ws: false
+	};
 	pd.store = {};
 	pd.eventQueue = [];
 	pd.slotsQueue = [];
-	pd.domain =  "sponser.co.il" ;
 
 	var config = {
 	  cookies: true,
@@ -469,44 +469,6 @@ var pubdefend = (function () {
 	  return a;
 	};
 
-	var Cookies = {
-	  set: function set(name, value, ttl, domain) {
-	    var expires = "";
-	    var cookieDomain = "";
-
-	    if (ttl) {
-	      var date = new Date();
-	      date.setTime(date.getTime() + ttl * 60 * 1000);
-	      expires = "; expires=" + date.toGMTString();
-	    }
-
-	    if (domain) {
-	      cookieDomain = "; domain=" + domain;
-	    }
-
-	    document.cookie = name + "=" + escape(value) + expires + cookieDomain + "; path=/";
-	  },
-	  get: function get(name) {
-	    var i, c;
-	    var nameEQ = name + "=";
-	    var ca = document.cookie.split(';');
-
-	    for (i = 0; i < ca.length; i++) {
-	      c = ca[i];
-
-	      while (c.charAt(0) === ' ') {
-	        c = c.substring(1, c.length);
-	      }
-
-	      if (c.indexOf(nameEQ) === 0) {
-	        return unescape(c.substring(nameEQ.length, c.length));
-	      }
-	    }
-
-	    return null;
-	  }
-	};
-
 	var LOG_ELEMENT = "log";
 	function appendLog(text) {
 	  if (!text) {
@@ -525,14 +487,52 @@ var pubdefend = (function () {
 	  return;
 	}
 
+	var _eventQueue = pd.eventQueue;
+	/* 
+	import Cookies from "./pubdefend.cookies";
+
+	export const setCookie = function (name, value, ttl) {
+		Cookies.set(name, value, ttl, config.cookieDomain || config.endpoints.base);
+	};
+
+	export const getCookie = function (name) {
+		return Cookies.get(name);
+	};
+
+	export const destroyCookie = function (name) {
+		Cookies.set(name, "", -1);
+	};
+
+	export const saveEventQueue = function (eventQueue) {
+		if (canStringify) {
+			setCookie(config.cookieName, JSON.stringify(eventQueue), 60);
+		}
+	};
+	 */
+
+	/* export function addEventListener(element, eventType, eventHandler, useCapture) {
+		if (element.addEventListener) {
+			element.addEventListener(eventType, eventHandler, useCapture);
+			return true;
+		}
+		if (element.attachEvent) {
+			return element.attachEvent(eventType, eventHandler);
+		}
+		element["on" + eventType] = eventHandler;
+	} */
+
+	function saveEventQueue(eventName, data) {
+	  if (!eventName) _eventQueue[eventName] = data;
+	  /* if (_eventQueue.indexOf(name) !== -1) {
+	  	_eventQueue[name].push(data);
+	  } else {
+	  	logger.warn("eventQueue duplicate key:", _eventQueue, name, data);
+	  } */
+	}
 	function store(obj, prop, val) {
 	  if (!isObject(obj)) return;
-
-	  if (!obj.hasOwnProperty(prop)) {
-	    obj[prop] = val;
-	  }
-
 	  obj[prop] = val;
+	  /* <Dev Only> */
 
 	  if (isObject(val)) {
 	    var _iterator = _createForOfIteratorHelper(entries(val)),
@@ -554,6 +554,8 @@ var pubdefend = (function () {
 	  } else {
 	    appendLog(prop + ": " + val);
 	  }
+	  /* </Dev Only> */
+
 	}
 	function getStore(encode) {
 	  var _obj = pd.store;
@@ -565,41 +567,41 @@ var pubdefend = (function () {
 
 	  return _obj;
 	}
-	function customEvent(name, details) {
-	  if (!name) return;
-	  var data = details ? details : "none";
+	function customEvent(eventName, payload) {
+	  if (!eventName) return;
+	  var payload = payload ? payload : "none";
 	  var event;
-	  var eventString = name;
+	  var eventString = eventName;
 
 	  try {
 	    event = new CustomEvent(eventString, {
 	      detail: {
-	        data: data
+	        payload: payload
 	      }
 	    });
 	  } catch (err) {
 	    event = document.createEvent("CustomEvent");
 	    event.initCustomEvent(eventString, false, false, {
-	      data: data
+	      payload: payload
 	    });
 	  }
 
 	  window.dispatchEvent(event);
 	}
-	/*  Dev only */
+	/*
+	// Dev only
+	export function testcookie() {
+		var _obj = {};
+		var arr = Cookies.get(config.cookieName);
+		var storeItems = JSON.parse(arr);
 
-	function testcookie() {
-	  var _obj = {};
-	  var arr = Cookies.get(config.cookieName);
-	  var storeItems = JSON.parse(arr);
-
-	  for (var item in storeItems) {
-	    _obj[storeItems[item].prop] = storeItems[item].val;
-	  }
-
-	  console.log(_obj);
-	  console.log(btoa(_obj));
+		for (let item in storeItems) {
+			_obj[storeItems[item].prop] = storeItems[item].val;
+		}
+		console.log(_obj);
+		console.log(btoa(_obj));
 	}
+	*/
 
 	var domQuery = {
 	  htmlCollectionToArray: function htmlCollectionToArray(foundNodes) {
@@ -675,75 +677,60 @@ var pubdefend = (function () {
 	}
 
 	var _store = pd.store;
-	var solts_arr = {},
-	    solts_req = 0,
+	var solts_req = 0,
 	    rendered = false;
-	function gtagHandler(callback) {
+	function googletagHandler(callback) {
 	  var gtag = window["googletag"];
 	  /* googletag defined Slots */
 
-	  solts_req = googletag.pubads().getSlots().length;
-	  store(_store, "gtag_slots", solts_req);
-	  logger.log("googaltag slots:", solts_req);
+	  function Slots() {
+	    return window.googletag.pubads().getSlots().map(function (slot) {
+	      return {
+	        id: slot.getSlotElementId()
+	      };
+	    });
+	  }
+
+	  solts_req = Slots();
+	  store(_store, "gtag_slots", solts_req.length);
+	  logger.log("googaltag:: slots count:", solts_req);
 	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	  if (callback) {
-	    callback("blocked");
+	    callback(Slots());
 	  }
 
 	  return;
 	}
 
-	var listenForSlots = function listenForSlots(callback, event) {
-	  //var listenForSlots = function (event) {
-	  var slot = event.slot; //logger.log(slot);
-
-	  var id = slot.getSlotElementId();
-	  var elm = document.getElementById(id);
-	  var isItVisible = checkIfVisible(elm); //solts_arr[id] = true;
-
-	  solts_arr[id] = {
+	function listenForSlots(callback, event) {
+	  var slot = event.slot;
+	  var slotId = slot.getSlotElementId();
+	  var slotElm = document.getElementById(slotId);
+	  var slotIsVisible = checkIfVisible(slotElm);
+	  ({
 	    0: true,
-	    1: isItVisible,
+	    1: slotIsVisible,
 	    2: event.isEmpty,
 	    3: event.size
-	  };
-	  logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
-	  logger.log("Is empty?:", event.isEmpty);
-	  logger.log("Size:", event.size);
-	  logger.groupEnd(); //logger.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
-	  //logger.log("solts_arr", solts_arr);
+	  });
+	  logger.log("googaltag:: Slot", slot.getSlotElementId(), "finished rendering.");
 
 	  if (!rendered) {
-	    var gtagFindElements = domQuery.find('div[id*="google_ad"]');
-	    store(_store, "gtag_impr", gtagFindElements.length);
-	    customEvent("impr", gtagFindElements.length);
+	    var FindElements = domQuery.find('div[id*="google_ad"]');
+	    store(_store, "gtag_impr", FindElements.length);
+	    customEvent("impr", FindElements.length);
 
 	    if (callback) {
-	      callback(gtagFindElements);
+	      callback(FindElements);
 	    }
 	  }
 
 	  rendered = true;
-	};
+	}
 
 	var listenForSlotsCallback = function listenForSlotsCallback(arr) {
-	  if (isArray()) {
-	    var slotElementId = {};
-	    arr.forEach(function (val) {
-	      var type = val.firstElementChild.nodeName ? val.firstElementChild.nodeName : false;
-
-	      if (type) {
-	        slotElementId[val.parentElement.id] = {
-	          type: val.firstElementChild.nodeName,
-	          id: val.firstElementChild.id
-	        };
-	      }
-	    });
-	    slotElementId.slots = Object.keys(slotElementId).length;
-	    logger.debug(slotElementId);
-	    logger.debug("solts_arr", solts_arr);
-	  }
+	  if (isArray()) ;
 	};
 
 	function bait(callback) {
@@ -802,7 +789,7 @@ var pubdefend = (function () {
 	    self.client.subscribe(self.topic, {
 	      qos: 1
 	    });
-	    customEvent("wsLoaded");
+	    customEvent("wsLoaded", "loaded");
 	  }
 	  /*Callback for failed connection*/
 
@@ -884,7 +871,6 @@ var pubdefend = (function () {
 	//import 'core-js/features/promise';
 	//Promise.resolve(32).then(x => logger.log(x));
 
-	pd.testcookie = testcookie;
 	pd.getStore = getStore;
 	var ws;
 	var _store$1 = pd.store;
@@ -907,7 +893,7 @@ var pubdefend = (function () {
 
 	  var _p = {};
 	  _p["hostname"] = getHostName(location.hostname);
-	  _p["domain"] = pd.domain;
+	  _p["domain"] =  "sponser.co.il" ;
 	  _p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
 	  _p["pubid"] = detectPid("[pub-defend-property]").id;
 	  store(_store$1, "publisher", _p);
@@ -934,9 +920,9 @@ var pubdefend = (function () {
 	  var gtag = window["googletag"];
 	  var apiReady = setInterval(function () {
 	    if (gtag && gtag["apiReady"]) {
-	      logger.log("#" + limit, "googaltag apiReady");
+	      logger.log("googaltag:: apiReady (#" + limit + ")");
 	      clearInterval(apiReady);
-	      gtagHandler(callback);
+	      googletagHandler(callback);
 	    }
 
 	    if (limit <= 0) {
@@ -951,8 +937,8 @@ var pubdefend = (function () {
 	  log(pd.debug);
 	  documentReady(function () {
 	    logger.log("pubdefend:: init..");
-	    gtagApiReady(function (status) {
-	      logger.log("gtag::", status);
+	    gtagApiReady(function (res) {
+	      if (res) logger.log("googaltag::", res);
 	    });
 	    /**
 	     * Load Paho mqtt lib.
@@ -962,30 +948,44 @@ var pubdefend = (function () {
 	     */
 
 	    isReady(function (status) {
-	      /** AD blocker bait  */
-	      var testBait = bait(function (data) {
-	        customEvent("ab", data);
-	        store(_store$1, "blocked", data);
-	      });
 	      logger.log("pubdefend::", status);
+	      /** AD blocker bait  */
+
+	      var testBait = bait(function (e) {
+	        customEvent("ab", e.toString());
+	        store(_store$1, "ab", e);
+	      });
 	      logger.log("pubdefend:: Loading paho lib");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
 	        logger.info("pubdefend:: paho lib ready");
 	        ws = new MqttClient();
 	      });
-	      window.addEventListener("wsLoaded", function (e) {
-	        pd.state.ws = true;
-	        logger.info("pubdefend[event]:: listen To Ws", e.detail);
-	        logger.info(getStore());
-	        ws.pub(JSON.stringify(getStore()));
-	      }, true);
 	      window.addEventListener("impr", function (e) {
-	        pd.state.g = true;
-	        logger.info("pubdefend[event]:: impr", e.detail);
+	        pd.state["g"] = true;
+	        console.log("pubdefend[impr Listener]:: ws", pd.state["ws"]);
+
+	        if (pd.state["ws"]) {
+	          saveEventQueue("impr", e.detail.payload);
+	          console.log("pubdefend[EventQueue]:: impr", e.detail.payload);
+	        }
 	      }, true);
 	      window.addEventListener("ab", function (e) {
-	        pd.state.ab = true;
-	        logger.info("pubdefend[event]:: ab", e.detail);
+	        pd.state["ab"] = true;
+	        console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
+
+	        if (pd.state["ws"]) {
+	          saveEventQueue("ab", e.detail.payload);
+	          console.log("pubdefend[EventQueue]:: ab", e.detail.payload);
+	        }
+	      }, true);
+	      window.addEventListener("wsLoaded", function (e) {
+	        console.info("pubdefend[ws Listener]::", e.detail.payload);
+	        console.info("pubdefend[ws]::", "is g?", pd.store.hasOwnProperty("g"));
+	        console.info("pubdefend[ws]::", "is ab?", pd.store.hasOwnProperty("ab"));
+	        logger.info(getStore());
+	        ws.pub(JSON.stringify(getStore(true)));
+	        pd.state["ws"] = true;
+	        logger.log("pubdefend[status]:: ws", pd.state["ws"]);
 	      }, true);
 	    });
 	  });

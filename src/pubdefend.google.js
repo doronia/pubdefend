@@ -12,75 +12,66 @@ var solts_arr = {},
 	Listener,
 	rendered = false;
 
-export function Slots() {
-	return window.googletag
-		.pubads()
-		.getSlots()
-		.map(function (slot) {
-			return {
-				adUnitPath: slot.getAdUnitPath(),
-				responseInformation: slot.getResponseInformation(),
-			};
-		});
-}
-
-export function gtagHandler(callback) {
+export function googletagHandler(callback) {
 	var gtag = window["googletag"];
 
 	/* googletag defined Slots */
-	solts_req = googletag.pubads().getSlots().length;
-	store(_store, "gtag_slots", solts_req);
-	logger.log("googaltag slots:", solts_req);
+	function Slots() {
+		return window.googletag
+			.pubads()
+			.getSlots()
+			.map(function (slot) {
+				return {
+					id: slot.getSlotElementId(),
+				};
+			});
+	}
+	solts_req = Slots();
+
+	store(_store, "gtag_slots", solts_req.length);
+	logger.log("googaltag:: slots count:", solts_req);
 
 	Listener = gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	if (callback) {
-		callback("blocked");
+		callback(Slots());
 	}
 
 	return;
 }
 
-var listenForSlots = function (callback, event) {
-	//var listenForSlots = function (event) {
+function listenForSlots(callback, event) {
 	var slot = event.slot;
-	//logger.log(slot);
+	var slotId = slot.getSlotElementId();
+	var slotElm = document.getElementById(slotId);
+	var slotIsVisible = checkIfVisible(slotElm);
+	solts_arr[slotId] = { 0: true, 1: slotIsVisible, 2: event.isEmpty, 3: event.size };
 
-	var id = slot.getSlotElementId();
-	var elm = document.getElementById(id);
-	var isItVisible = checkIfVisible(elm);
-	//solts_arr[id] = true;
-	solts_arr[id] = { 0: true, 1: isItVisible, 2: event.isEmpty, 3: event.size };
-
-	logger.group("Slot", slot.getSlotElementId(), "finished rendering.");
-	logger.log("Is empty?:", event.isEmpty);
-	logger.log("Size:", event.size);
-	logger.groupEnd();
-	//logger.log('Slot', slot.getSlotElementId(), 'visibility:', isItVisible);
-	//logger.log("solts_arr", solts_arr);
+	logger.log("googaltag:: Slot", slot.getSlotElementId(), "finished rendering.");
 
 	if (!rendered) {
-		var gtagFindElements = domQuery.find('div[id*="google_ad"]');
-		store(_store, "gtag_impr", gtagFindElements.length);
-		customEvent("impr", gtagFindElements.length);
+		var FindElements = domQuery.find('div[id*="google_ad"]');
+		store(_store, "gtag_impr", FindElements.length);
+		customEvent("impr", FindElements.length);
 		if (callback) {
-			callback(gtagFindElements);
+			callback(FindElements);
 		}
 	}
 	rendered = true;
-};
+}
 
 var listenForSlotsCallback = function (arr) {
 	if (isArray(arr)) {
-		var slotElementId = {};
+		/* var slotObj = {};
 		arr.forEach(function (val) {
-			var type = val.firstElementChild.nodeName ? val.firstElementChild.nodeName : false;
-			if (type) {
-				slotElementId[val.parentElement.id] = { type: val.firstElementChild.nodeName, id: val.firstElementChild.id };
+			logger.info(val.parentElement.id);
+			var pid = val.parentElement.id,
+				firstc = val.firstElementChild.nodeName,
+				firstcid = val.firstElementChild.id;
+			if (firstc && firstcid) {
+				slotObj[pid] = { type: firstc, id: firstcid };
 			}
 		});
-		slotElementId.slots = Object.keys(slotElementId).length;
-		logger.debug(slotElementId);
-		logger.debug("solts_arr", solts_arr);
+		slotObj.slotsCount = Object.keys(slotObj).length; */
 	}
 };

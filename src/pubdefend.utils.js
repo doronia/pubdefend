@@ -94,7 +94,7 @@ export function parseBase64(str) {
 	if (!str) return;
 
 	var decodeStr = JSON.stringify(atob(str));
-	decodeStr = JSON.parse(decodeStr);
+	console.table(JSON.parse(atob(str)));
 
 	var properties = decodeStr.split(",");
 	var obj = {};

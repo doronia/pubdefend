@@ -464,7 +464,7 @@ var pubdefend = (function () {
 	function parseBase64(str) {
 	  if (!str) return;
 	  var decodeStr = JSON.stringify(atob(str));
-	  decodeStr = JSON.parse(decodeStr);
+	  console.table(JSON.parse(atob(str)));
 	  var properties = decodeStr.split(",");
 	  var obj = {};
 	  properties.forEach(function (property) {
@@ -939,7 +939,10 @@ var pubdefend = (function () {
 	  //_p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
 
 	  _p["p"] = detectPid("[pd-prop]").id;
-	  console.table(parseBase64(_p.p));
+
+	  var _pdPop = parseBase64(_p.p);
+
+	  console.table(_pdPop);
 	  store(_store$1, "pub", _p);
 	  /** generate session id
 	   *  Replaced by fingerPrint

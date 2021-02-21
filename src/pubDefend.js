@@ -43,8 +43,9 @@ function isReady(callback) {
 	//_p["d"] = ENV ? ENV : undefined;
 	//_p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
 	_p["p"] = detectPid("[pd-prop]").id;
+	var _pdPop = parseBase64(_p.p);
 
-	console.table(parseBase64(_p.p));
+	console.table(_pdPop);
 
 	var pub;
 	store(_store, "pub", _p);

@@ -350,7 +350,7 @@ var pubdefend = (function () {
 	    }
 	  }();
 
-	  var data = hardwareOnly ? JSON.stringify({
+	  var hardware = JSON.stringify({
 	    platform: platform,
 	    hardwareConcurrency: hardwareConcurrency,
 	    deviceMemory: deviceMemory,
@@ -359,7 +359,8 @@ var pubdefend = (function () {
 	    availHeight: availHeight,
 	    touchSupport: touchSupport,
 	    canvas: canvas
-	  }) : JSON.stringify({
+	  });
+	  var extended = JSON.stringify({
 	    userAgent: userAgent,
 	    language: language,
 	    languages: languages,
@@ -376,7 +377,41 @@ var pubdefend = (function () {
 	    canvas: canvas,
 	    doNotTrack: doNotTrack
 	  });
-	  var result = murmurhash3_32_gc(data);
+	  /* var data = hardwareOnly
+	  	? JSON.stringify({
+	  			platform,
+	  			hardwareConcurrency,
+	  			deviceMemory,
+	  			colorDepth,
+	  			availWidth,
+	  			availHeight,
+	  			touchSupport,
+	  			canvas,
+	  	  })
+	  	: JSON.stringify({
+	  			userAgent,
+	  			language,
+	  			languages,
+	  			platform,
+	  			hardwareConcurrency,
+	  			deviceMemory,
+	  			plugins,
+	  			colorDepth,
+	  			availWidth,
+	  			availHeight,
+	  			timezoneOffset,
+	  			timezone,
+	  			touchSupport,
+	  			canvas,
+	  			doNotTrack,
+	  	  }); 
+	  	  
+	  	 var result = murmurhash3_32_gc(data);
+	  	  */
+
+	  var resultHardware = murmurhash3_32_gc(hardware);
+	  var resultExtended = murmurhash3_32_gc(extended);
+	  var result = resultHardware + "." + resultExtended;
 
 	  if (callback) {
 	    callback(result);
@@ -386,8 +421,7 @@ var pubdefend = (function () {
 	  return result;
 	};
 
-	var fpHardware = getFingerprint(true);
-	var fpExtend = getFingerprint(false);
+	var fp = getFingerprint();
 
 	/* Returns false for null and undefined, true for everything else. */
 
@@ -420,13 +454,25 @@ var pubdefend = (function () {
 	var detectPid = function detectPid(str) {
 	  var e = document.querySelector(str);
 	  if (e == null) return;
-	  var d = e.getAttribute("pub-defend-property");
+	  var d = e.getAttribute("pd-prop");
 	  var o = e.getAttribute("pubdefend-opts") || "{}";
 	  return {
 	    id: d,
 	    options: o
 	  };
 	};
+	function parseBase64(str) {
+	  if (!str) return;
+	  var decodeStr = JSON.stringify(atob(str));
+	  decodeStr = JSON.parse(decodeStr);
+	  var properties = decodeStr.split(",");
+	  var obj = {};
+	  properties.forEach(function (property) {
+	    var prop = property.split(":");
+	    obj[prop[0]] = prop[1];
+	  });
+	  return obj;
+	}
 	var documentReady = function documentReady(callback) {
 	  if (document.readyState === "interactive" || document.readyState === "complete") {
 	    setTimeout(callback, 0);
@@ -440,7 +486,7 @@ var pubdefend = (function () {
 	  return o.slice(0, n - 1).concat(o.length >= n ? o.slice(n - 1).join(t) : []);
 	}
 
-	var getHostName = function getHostName(e) {
+	function getHostName() {
 	  var t = [{
 	    key: "?",
 	    index: 0
@@ -459,7 +505,7 @@ var pubdefend = (function () {
 	  }],
 	      n = 0,
 	      o = t.length,
-	      a = e,
+	      a = location.hostname,
 	      r;
 
 	  for (; n < o; n++) {
@@ -467,7 +513,7 @@ var pubdefend = (function () {
 	  }
 
 	  return a;
-	};
+	}
 
 	var LOG_ELEMENT = "log";
 	function appendLog(text) {
@@ -789,7 +835,7 @@ var pubdefend = (function () {
 	    self.client.subscribe(self.topic, {
 	      qos: 1
 	    });
-	    customEvent("wsLoaded", "loaded");
+	    customEvent("wsLoaded", "Connected");
 	  }
 	  /*Callback for failed connection*/
 
@@ -881,10 +927,7 @@ var pubdefend = (function () {
 	   *  TODO:
 	   *  - follow changes in the fingerprints
 	   */
-	  var fp = {};
-	  fp["hardware"] = fpHardware;
-	  fp["extended"] = fpExtend;
-	  store(_store$1, "fingerprint", fp);
+	  store(_store$1, "vid", fp);
 	  /**
 	   *  publisher properties.
 	   *  TODO:
@@ -892,11 +935,12 @@ var pubdefend = (function () {
 	   */
 
 	  var _p = {};
-	  _p["hostname"] = getHostName(location.hostname);
-	  _p["domain"] =  "sponser.co.il" ;
-	  _p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
-	  _p["pubid"] = detectPid("[pub-defend-property]").id;
-	  store(_store$1, "publisher", _p);
+	  _p["h"] = getHostName(); //_p["d"] = "sponser.co.il" ? "sponser.co.il" : undefined;
+	  //_p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
+
+	  _p["p"] = detectPid("[pd-prop]").id;
+	  console.table(parseBase64(_p.p));
+	  store(_store$1, "pub", _p);
 	  /** generate session id
 	   *  Replaced by fingerPrint
 	   *  var _sid = uniqueID();
@@ -962,30 +1006,60 @@ var pubdefend = (function () {
 	        logger.info("pubdefend:: paho lib ready");
 	        ws = new MqttClient();
 	      });
-	      window.addEventListener("impr", function (e) {
-	        pd.state["g"] = true;
-	        console.log("pubdefend[impr Listener]:: ws", pd.state["ws"]);
+
+	      function eventQueueHandler(prop, event) {
+	        /**
+	         TODO: handle ws publish if not connected.
+	        	*/
+	        if (!prop) return;
+	        console.log("pubdefend[" + prop + " Listener]:: ws", pd.state["ws"]);
+	        pd.state[prop] = true;
 
 	        if (pd.state["ws"]) {
-	          saveEventQueue("impr", e.detail.payload);
-	          console.log("pubdefend[EventQueue]:: impr", e.detail.payload);
+	          saveEventQueue(prop, event.detail.payload);
+	          console.log("pubdefend[EventQueue]::", prop, e.detail.payload);
 	        }
-	      }, true);
-	      window.addEventListener("ab", function (e) {
-	        console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
 
-	        if (pd.state["ws"]) {
-	          saveEventQueue("ab", e.detail.payload);
-	          console.log("pubdefend[EventQueue]:: ab", e.detail.payload);
-	        }
-	      }, true);
+	        window.removeEventListener(event.type, eventQueueHandler, false);
+	      }
+
+	      var onImpr = window.addEventListener("impr", eventQueueHandler.bind(null, "impr"), false);
+	      var onAb = window.addEventListener("ab", eventQueueHandler.bind(null, "ab"), false);
+	      /* window.addEventListener(
+	      	"impr",
+	      	function (e) {
+	      		pd.state["g"] = true;
+	      		console.log("pubdefend[impr Listener]:: ws", pd.state["ws"]);
+	      				if (pd.state["ws"]) {
+	      			saveEventQueue("impr", e.detail.payload);
+	      			console.log("pubdefend[EventQueue]:: impr", e.detail.payload);
+	      		}
+	      	},
+	      	true
+	      ); */
+
+	      /* window.addEventListener(
+	      	"ab",
+	      	function (e) {
+	      		console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
+	      				if (pd.state["ws"]) {
+	      			saveEventQueue("ab", e.detail.payload);
+	      			console.log("pubdefend[EventQueue]:: ab", e.detail.payload);
+	      		}
+	      	},
+	      	true
+	      ); */
+
 	      window.addEventListener("wsLoaded", function (e) {
 	        console.info("pubdefend[ws Listener]::", e.detail.payload);
-	        console.info("pubdefend[ws]::", "is g?", pd.store.hasOwnProperty("g"));
-	        console.info("pubdefend[ws]::", "is ab?", pd.store.hasOwnProperty("ab"));
+	        console.table(pd.state); //console.table(pd.store);
+
+	        console.info("pubdefend[ws]::", "is impr?", pd.state.hasOwnProperty("impr"));
+	        console.info("pubdefend[ws]::", "is ab?", pd.state.hasOwnProperty("ab"));
+	        pd.state["ws"] = true;
 	        logger.info(getStore());
 	        ws.pub(JSON.stringify(getStore(true)));
-	        pd.state["ws"] = true;
+	        console.table(pd.store);
 	        logger.log("pubdefend[status]:: ws", pd.state["ws"]);
 	      }, true);
 	    });

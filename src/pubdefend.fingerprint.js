@@ -107,7 +107,35 @@ var getFingerprint = function (hardwareOnly, callback) {
 		}
 	})();
 
-	var data = hardwareOnly
+	var hardware = JSON.stringify({
+		platform,
+		hardwareConcurrency,
+		deviceMemory,
+		colorDepth,
+		availWidth,
+		availHeight,
+		touchSupport,
+		canvas,
+	});
+	var extended = JSON.stringify({
+		userAgent,
+		language,
+		languages,
+		platform,
+		hardwareConcurrency,
+		deviceMemory,
+		plugins,
+		colorDepth,
+		availWidth,
+		availHeight,
+		timezoneOffset,
+		timezone,
+		touchSupport,
+		canvas,
+		doNotTrack,
+	});
+
+	/* var data = hardwareOnly
 		? JSON.stringify({
 				platform,
 				hardwareConcurrency,
@@ -134,10 +162,14 @@ var getFingerprint = function (hardwareOnly, callback) {
 				touchSupport,
 				canvas,
 				doNotTrack,
-		  });
+		  }); 
+		  
+		 var result = murmurhash3_32_gc(data);
+		  */
 
-	var result = murmurhash3_32_gc(data);
-
+	var resultHardware = murmurhash3_32_gc(hardware);
+	var resultExtended = murmurhash3_32_gc(extended);
+	var result = resultHardware + "." + resultExtended;
 	if (callback) {
 		callback(result);
 		return;
@@ -146,5 +178,4 @@ var getFingerprint = function (hardwareOnly, callback) {
 	return result;
 };
 
-export var fpHardware = getFingerprint(true);
-export var fpExtend = getFingerprint(false);
+export var fp = getFingerprint();

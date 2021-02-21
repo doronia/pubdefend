@@ -36,7 +36,7 @@ export function MqttClient() {
 			qos: 1,
 		});
 
-		customEvent("wsLoaded", "loaded");
+		customEvent("wsLoaded", "Connected");
 	}
 
 	/*Callback for failed connection*/

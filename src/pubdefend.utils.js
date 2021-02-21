@@ -81,7 +81,7 @@ export const detectPid = function (str) {
 	const e = document.querySelector(str);
 	if (e == null) return;
 
-	const d = e.getAttribute("pub-defend-property");
+	const d = e.getAttribute("pd-prop");
 	const o = e.getAttribute("pubdefend-opts") || "{}";
 
 	return {
@@ -89,6 +89,21 @@ export const detectPid = function (str) {
 		options: o,
 	};
 };
+
+export function parseBase64(str) {
+	if (!str) return;
+
+	var decodeStr = JSON.stringify(atob(str));
+	decodeStr = JSON.parse(decodeStr);
+
+	var properties = decodeStr.split(",");
+	var obj = {};
+	properties.forEach(function (property) {
+		var prop = property.split(":");
+		obj[prop[0]] = prop[1];
+	});
+	return obj;
+}
 
 export const canStringify = typeof JSON !== "undefined" && typeof JSON.stringify !== "undefined";
 
@@ -100,7 +115,7 @@ export const documentReady = function (callback) {
 	}
 };
 
-export const getDomain = function (url, subdomain) {
+export function getDomain(url, subdomain) {
 	subdomain = subdomain || false;
 	url = url.replace(/(https?:\/\/)?(www.)?/i, "");
 	if (!subdomain) {
@@ -111,14 +126,14 @@ export const getDomain = function (url, subdomain) {
 		return url.split("/")[0];
 	}
 	return url;
-};
+}
 
 function lsplit(e, t, n) {
 	var o = e.split(t);
 	return o.slice(0, n - 1).concat(o.length >= n ? o.slice(n - 1).join(t) : []);
 }
 
-export const getHostName = function (e) {
+export function getHostName() {
 	var t = [
 			{ key: "?", index: 0 },
 			{ key: "://", index: 1 },
@@ -128,13 +143,13 @@ export const getHostName = function (e) {
 		],
 		n = 0,
 		o = t.length,
-		a = e,
+		a = location.hostname,
 		r;
 	for (; n < o; n++) {
 		a = (r = lsplit(a, t[n].key, 2)).length > 1 ? r[t[n].index] : r[0];
 	}
 	return a;
-};
+}
 
 export function uniqueID() {
 	var uid = new Date().getTime().toString().concat(performance.now());

@@ -2,9 +2,9 @@ import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
 import { log } from "./pubdefend.debug";
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
-import { documentReady, loadScript, detectPid, getHostName } from "./pubdefend.utils";
+import { documentReady, loadScript, detectPid, getHostName, parseBase64 } from "./pubdefend.utils";
 import { googletagHandler } from "./pubdefend.google";
-import { fpHardware, fpExtend } from "./pubdefend.fingerprint";
+import { fp } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
 import { customEvent, saveEventQueue, store, getStore } from "./pubdefend.events";
 import { MqttClient } from "./pubdefend.mqtt";
@@ -30,10 +30,8 @@ function isReady(callback) {
 	 *  TODO:
 	 *  - follow changes in the fingerprints
 	 */
-	var fp = {};
-	fp["hardware"] = fpHardware;
-	fp["extended"] = fpExtend;
-	store(_store, "fingerprint", fp);
+
+	store(_store, "vid", fp);
 
 	/**
 	 *  publisher properties.
@@ -41,11 +39,15 @@ function isReady(callback) {
 	 * 	- validate domaian indexof hostname
 	 */
 	var _p = {};
-	_p["hostname"] = getHostName(location.hostname);
-	_p["domain"] = ENV ? ENV : undefined;
-	_p["sameSite"] = -1 !== _p["hostname"].indexOf(_p["domain"].toString());
-	_p["pubid"] = detectPid("[pub-defend-property]").id;
-	store(_store, "publisher", _p);
+	_p["h"] = getHostName();
+	//_p["d"] = ENV ? ENV : undefined;
+	//_p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
+	_p["p"] = detectPid("[pd-prop]").id;
+
+	console.table(parseBase64(_p.p));
+
+	var pub;
+	store(_store, "pub", _p);
 
 	/** generate session id
 	 *  Replaced by fingerPrint
@@ -110,7 +112,27 @@ if (runningOnBrowser && !isBot) {
 				ws = new MqttClient();
 			});
 
-			window.addEventListener(
+			function eventQueueHandler(prop, event) {
+				/**
+				 TODO: handle ws publish if not connected.
+			 	*/
+				if (!prop) return;
+
+				console.log("pubdefend[" + prop + " Listener]:: ws", pd.state["ws"]);
+
+				pd.state[prop] = true;
+
+				if (pd.state["ws"]) {
+					saveEventQueue(prop, event.detail.payload);
+					console.log("pubdefend[EventQueue]::", prop, e.detail.payload);
+				}
+				window.removeEventListener(event.type, eventQueueHandler, false);
+			}
+
+			var onImpr = window.addEventListener("impr", eventQueueHandler.bind(null, "impr"), false);
+			var onAb = window.addEventListener("ab", eventQueueHandler.bind(null, "ab"), false);
+
+			/* window.addEventListener(
 				"impr",
 				function (e) {
 					pd.state["g"] = true;
@@ -122,8 +144,8 @@ if (runningOnBrowser && !isBot) {
 					}
 				},
 				true
-			);
-			window.addEventListener(
+			); */
+			/* window.addEventListener(
 				"ab",
 				function (e) {
 					console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
@@ -134,17 +156,20 @@ if (runningOnBrowser && !isBot) {
 					}
 				},
 				true
-			);
+			); */
 			window.addEventListener(
 				"wsLoaded",
 				function (e) {
 					console.info("pubdefend[ws Listener]::", e.detail.payload);
-					console.info("pubdefend[ws]::", "is g?", pd.store.hasOwnProperty("g"));
-					console.info("pubdefend[ws]::", "is ab?", pd.store.hasOwnProperty("ab"));
+					console.table(pd.state);
+					//console.table(pd.store);
+					console.info("pubdefend[ws]::", "is impr?", pd.state.hasOwnProperty("impr"));
+					console.info("pubdefend[ws]::", "is ab?", pd.state.hasOwnProperty("ab"));
 
+					pd.state["ws"] = true;
 					logger.info(getStore());
 					ws.pub(JSON.stringify(getStore(true)));
-					pd.state["ws"] = true;
+					console.table(pd.store);
 					logger.log("pubdefend[status]:: ws", pd.state["ws"]);
 				},
 				true

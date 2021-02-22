@@ -1,4 +1,6 @@
 import { pd } from "./pubdefend.init";
+import { config } from "./pubdefend.config";
+
 import { store } from "./pubdefend.events";
 import { domQuery, checkIfVisible } from "./pubdefend.dom";
 import { isArray } from "./pubdefend.polyfills";
@@ -52,7 +54,7 @@ function listenForSlots(callback, event) {
 	if (!rendered) {
 		var FindElements = domQuery.find('div[id*="google_ad"]');
 		store(_store, "gtag_impr", FindElements.length);
-		customEvent("impr", FindElements.length);
+		customEvent(config.constants.gtag, FindElements.length);
 		if (callback) {
 			callback(FindElements);
 		}

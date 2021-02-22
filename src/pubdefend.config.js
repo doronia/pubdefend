@@ -1,12 +1,14 @@
 export var config = {
-	cookies: true,
-	cookieName: "_pbdfndEvents",
-	cookieDomain: null,
 	endpoints: {
 		base: "pubdefend.com",
 		cdn: "c",
 		ws: "ws",
 		bait: "ad_banner.js",
+	},
+	constants: {
+		ws: "___pd_ws",
+		gtag: "___pd_gt",
+		adblocker: "___pd_ab",
 	},
 	queue: [],
 };

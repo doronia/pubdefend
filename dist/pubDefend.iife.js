@@ -10,14 +10,16 @@ var pubdefend = (function () {
 	pd.slotsQueue = [];
 
 	var config = {
-	  cookies: true,
-	  cookieName: "_pbdfndEvents",
-	  cookieDomain: null,
 	  endpoints: {
 	    base: "pubdefend.com",
 	    cdn: "c",
 	    ws: "ws",
 	    bait: "ad_banner.js"
+	  },
+	  constants: {
+	    ws: "___pd_ws",
+	    gtag: "___pd_gt",
+	    adblocker: "___pd_ab"
 	  },
 	  queue: []
 	};
@@ -461,18 +463,6 @@ var pubdefend = (function () {
 	    options: o
 	  };
 	};
-	function parseBase64(str) {
-	  if (!str) return;
-	  var decodeStr = JSON.stringify(atob(str));
-	  console.table(JSON.parse(atob(str)));
-	  var properties = decodeStr.split(",");
-	  var obj = {};
-	  properties.forEach(function (property) {
-	    var prop = property.split(":");
-	    obj[prop[0]] = prop[1];
-	  });
-	  return obj;
-	}
 	var documentReady = function documentReady(callback) {
 	  if (document.readyState === "interactive" || document.readyState === "complete") {
 	    setTimeout(callback, 0);
@@ -765,7 +755,7 @@ var pubdefend = (function () {
 	  if (!rendered) {
 	    var FindElements = domQuery.find('div[id*="google_ad"]');
 	    store(_store, "gtag_impr", FindElements.length);
-	    customEvent("impr", FindElements.length);
+	    customEvent(config.constants.gtag, FindElements.length);
 
 	    if (callback) {
 	      callback(FindElements);
@@ -835,7 +825,7 @@ var pubdefend = (function () {
 	    self.client.subscribe(self.topic, {
 	      qos: 1
 	    });
-	    customEvent("wsLoaded", "Connected");
+	    customEvent(config.constants.ws, "Connected");
 	  }
 	  /*Callback for failed connection*/
 
@@ -930,20 +920,22 @@ var pubdefend = (function () {
 	  store(_store$1, "vid", fp);
 	  /**
 	   *  publisher properties.
-	   *  TODO:
-	   * 	- validate domaian indexof hostname
 	   */
 
-	  var _p = {};
-	  _p["h"] = getHostName(); //_p["d"] = "sponser.co.il" ? "sponser.co.il" : undefined;
-	  //_p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
+	  store(_store$1, "host", getHostName());
+	  var pub = atob(detectPid("[pd-prop]").id);
+	  var pubify = JSON.stringify(pub);
+	  console.log(JSON.parse(pubify));
+	  store(_store$1, "pub", JSON.parse(pubify));
+	  /** 
+	   * Old method
+	   *  
+	   _p["d"] = "sponser.co.il" ? "sponser.co.il" : undefined;
+	   _p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
+	   var _pdPop = parseBase64(_p.p);
+	   console.table(_pdPop);
+	   * */
 
-	  _p["p"] = detectPid("[pd-prop]").id;
-
-	  var _pdPop = parseBase64(_p.p);
-
-	  console.table(_pdPop);
-	  store(_store$1, "pub", _p);
 	  /** generate session id
 	   *  Replaced by fingerPrint
 	   *  var _sid = uniqueID();
@@ -1001,69 +993,43 @@ var pubdefend = (function () {
 	      var testBait = bait(function (e) {
 	        if (!e.toString()) return;
 	        store(_store$1, "ab", e);
-	        pd.state["ab"] = true;
-	        customEvent("ab", e.toString());
+	        pd.state[config.constants.adblocker] = true;
+	        customEvent(config.constants.adblocker, e.toString());
 	      });
 	      logger.log("pubdefend:: Loading paho lib");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-	        logger.info("pubdefend:: paho lib ready");
+	        logger.info("pubdefend[ws]:: ready");
 	        ws = new MqttClient();
 	      });
 
-	      function eventQueueHandler(prop, event) {
+	      function stateQueueHandler(prop, event) {
 	        /**
 	         TODO: handle ws publish if not connected.
 	        	*/
 	        if (!prop) return;
-	        console.log("pubdefend[" + prop + " Listener]:: ws", pd.state["ws"]);
+	        console.log("pubdefend[" + prop + " Listener]:: ws", pd.state[config.constants.ws]);
 	        pd.state[prop] = true;
 
-	        if (pd.state["ws"]) {
+	        if (pd.state[config.constants.ws]) {
 	          saveEventQueue(prop, event.detail.payload);
-	          console.log("pubdefend[EventQueue]::", prop, e.detail.payload);
+	          console.log("pubdefend[EventQueue]::", prop, event.detail.payload);
 	        }
 
-	        window.removeEventListener(event.type, eventQueueHandler, false);
+	        window.removeEventListener(event.type, stateQueueHandler, false);
 	      }
 
-	      var onImpr = window.addEventListener("impr", eventQueueHandler.bind(null, "impr"), false);
-	      var onAb = window.addEventListener("ab", eventQueueHandler.bind(null, "ab"), false);
-	      /* window.addEventListener(
-	      	"impr",
-	      	function (e) {
-	      		pd.state["g"] = true;
-	      		console.log("pubdefend[impr Listener]:: ws", pd.state["ws"]);
-	      				if (pd.state["ws"]) {
-	      			saveEventQueue("impr", e.detail.payload);
-	      			console.log("pubdefend[EventQueue]:: impr", e.detail.payload);
-	      		}
-	      	},
-	      	true
-	      ); */
-
-	      /* window.addEventListener(
-	      	"ab",
-	      	function (e) {
-	      		console.log("pubdefend[ab Listener]:: ws", pd.state["ws"]);
-	      				if (pd.state["ws"]) {
-	      			saveEventQueue("ab", e.detail.payload);
-	      			console.log("pubdefend[EventQueue]:: ab", e.detail.payload);
-	      		}
-	      	},
-	      	true
-	      ); */
-
-	      window.addEventListener("wsLoaded", function (e) {
-	        console.info("pubdefend[ws Listener]::", e.detail.payload);
-	        console.table(pd.state); //console.table(pd.store);
-
-	        console.info("pubdefend[ws]::", "is impr?", pd.state.hasOwnProperty("impr"));
-	        console.info("pubdefend[ws]::", "is ab?", pd.state.hasOwnProperty("ab"));
-	        pd.state["ws"] = true;
+	      var onImpr = window.addEventListener(config.constants.gtag, stateQueueHandler.bind(null, config.constants.gtag), false);
+	      var onAb = window.addEventListener(config.constants.adblocker, stateQueueHandler.bind(null, config.constants.adblocker), false);
+	      window.addEventListener(config.constants.ws, function (event) {
+	        console.info("pubdefend[ws Listener]::", event.detail.payload);
+	        console.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	        console.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	        console.table(pd.state);
+	        pd.state[config.constants.ws] = true;
 	        logger.info(getStore());
 	        ws.pub(JSON.stringify(getStore(true)));
 	        console.table(pd.store);
-	        logger.log("pubdefend[status]:: ws", pd.state["ws"]);
+	        logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
 	      }, true);
 	    });
 	  });

@@ -1,6 +1,6 @@
 export var pd = window.pubDefend || window.pubdefend || {};
 
-pd.state = { ws: false };
+pd.state = {};
 pd.store = {};
 pd.eventQueue = [];
 pd.slotsQueue = [];

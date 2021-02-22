@@ -1,6 +1,5 @@
 import { pd } from "./pubdefend.init";
 import { isObject } from "./pubdefend.utils";
-import { log } from "./pubdefend.debug";
 import { entries } from "./pubdefend.polyfills";
 import { appendLog } from "./pubdefend.logs";
 
@@ -50,7 +49,7 @@ export function saveEventQueue(eventName, data) {
 }
 
 export function store(obj, prop, val) {
-	if (!isObject(obj)) return;
+	if (!isObject(obj) || !prop || 0 === prop.length || !val || 0 === val.length) return;
 
 	obj[prop] = val;
 

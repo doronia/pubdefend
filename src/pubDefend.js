@@ -31,17 +31,14 @@ function isReady(callback) {
 	 *  - follow changes in the fingerprints
 	 */
 
-	store(_store, "vid", fp);
+	store(_store, "fp", fp);
 
 	/**
 	 *  publisher properties.
 	 */
-	store(_store, "host", getHostName());
+	store(_store, "ho", getHostName());
 	var pub = atob(detectPid("[pd-prop]").id);
-	var pubify = JSON.stringify(pub);
-
-	console.log(JSON.parse(pubify));
-	store(_store, "pub", JSON.parse(pubify));
+	store(_store, "pu", JSON.parse(pub));
 
 	/** 
 	 * Old method
@@ -58,9 +55,9 @@ function isReady(callback) {
 	 *  store(_store, "sid", _sid);
 	 */
 	var _browser = detectBrowser();
-	store(_store, "browser", _browser);
+	store(_store, "br", _browser);
 
-	store(_store, "isMobile", isMobile);
+	store(_store, "mo", isMobile);
 
 	if (callback) {
 		callback("isReady");
@@ -73,7 +70,7 @@ function gtagApiReady(callback) {
 	var gtag = window["googletag"];
 	var apiReady = setInterval(function () {
 		if (gtag && gtag["apiReady"]) {
-			logger.log("googaltag:: apiReady (#" + limit + ")");
+			logger.log("pubdefend[g]:: apiReady (#" + limit + ")");
 			clearInterval(apiReady);
 			googletagHandler(callback);
 		}
@@ -86,11 +83,12 @@ function gtagApiReady(callback) {
 
 if (runningOnBrowser && !isBot) {
 	log(pd.debug);
+
 	documentReady(function () {
 		logger.log("pubdefend:: init..");
 
 		gtagApiReady(function (res) {
-			if (res) logger.log("googaltag::", res);
+			res && logger.log("pubdefend[g]::", res);
 		});
 		/**
 		 * Load Paho mqtt lib.
@@ -100,18 +98,18 @@ if (runningOnBrowser && !isBot) {
 		 */
 		isReady(function (status) {
 			logger.log("pubdefend::", status);
-
+			pd.state[config.constants.ws] = false;
 			/** AD blocker bait  */
-			var testBait = bait(function (e) {
-				if (!e.toString()) return;
-				store(_store, "ab", e);
+			var testBait = bait(function (res) {
+				if (!res) return;
+				store(_store, "ab", res);
 				pd.state[config.constants.adblocker] = true;
-				customEvent(config.constants.adblocker, e.toString());
+				customEvent(config.constants.adblocker, res);
 			});
 
-			logger.log("pubdefend:: Loading paho lib");
+			logger.log("pubdefend:: Loading ws");
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-				logger.info("pubdefend[ws]:: ready");
+				logger.log("pubdefend[ws]:: ready");
 				ws = new MqttClient();
 			});
 
@@ -120,7 +118,6 @@ if (runningOnBrowser && !isBot) {
 				 TODO: handle ws publish if not connected.
 			 	*/
 				if (!prop) return;
-
 				console.log("pubdefend[" + prop + " Listener]:: ws", pd.state[config.constants.ws]);
 
 				pd.state[prop] = true;
@@ -129,7 +126,7 @@ if (runningOnBrowser && !isBot) {
 					saveEventQueue(prop, event.detail.payload);
 					console.log("pubdefend[EventQueue]::", prop, event.detail.payload);
 				}
-				window.removeEventListener(event.type, stateQueueHandler, false);
+				window.removeEventListener(config.constants[prop], stateQueueHandler, false);
 			}
 
 			var onImpr = window.addEventListener(config.constants.gtag, stateQueueHandler.bind(null, config.constants.gtag), false);
@@ -138,16 +135,15 @@ if (runningOnBrowser && !isBot) {
 			window.addEventListener(
 				config.constants.ws,
 				function (event) {
-					console.info("pubdefend[ws Listener]::", event.detail.payload);
-					console.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-					console.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-					console.table(pd.state);
+					logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
+					logger.info("pubdefend[ws Listener]::", event.detail.payload);
+					logger.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+					logger.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+					logger.table(pd.state);
 					pd.state[config.constants.ws] = true;
 
-					logger.info(getStore());
+					logger.log(getStore());
 					ws.pub(JSON.stringify(getStore(true)));
-					console.table(pd.store);
-					logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
 				},
 				true
 			);

@@ -100,8 +100,6 @@ export function MqttClient() {
 
 		var message = new Paho.MQTT.Message(data);
 		message.destinationName = self.topic;
-		//debug("SEND ON " + message.destinationName + " PAYLOAD " + data);
-		//logger.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
 		if (callback) {
 			setTimeout(callback);
 		}
@@ -109,19 +107,4 @@ export function MqttClient() {
 	};
 
 	return self;
-}
-
-export function createInstance(classObj, options) {
-	var event;
-	let eventString = "ws";
-	let instance = new classObj(options);
-	try {
-		// Works in modern browsers
-		event = new CustomEvent(eventString, { detail: { instance } });
-	} catch (err) {
-		// Works in Internet Explorer (all versions)
-		event = document.createEvent("CustomEvent");
-		event.initCustomEvent(eventString, false, false, { instance });
-	}
-	window.dispatchEvent(event);
 }

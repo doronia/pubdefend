@@ -72,20 +72,20 @@
 
 		<!-- <script src="pubDefend.iife.js" data-pubdefend-id="hd11f820-68a1-11e6-8047-79c0c2d9bce0"></script> -->
 
+		<!-- <script async src="../dist/pubDefend.iife.js" pd-prop="eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo"></script> -->
 		<script type="text/javascript">
 			window.pubdefend = window.pubdefend || {};
-			pubdefend.debug = false;
-			/* !(function (e, f, u, i) {
+			pubdefend.debug = true;
+			!(function (e, f, u, i) {
 				if (!document.getElementById(i)) {
 					e.async = 1;
 					e.src = u;
-					//e.id = i;
+					e.id = i;
 					e.setAttribute("pd-prop", "eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo");
 					f.parentNode.insertBefore(e, f);
 				}
-			})(document.createElement("script"), document.getElementsByTagName("script")[0], "../dist/pubDefend.iife.js", "pubdefend"); */
+			})(document.createElement("script"), document.getElementsByTagName("script")[0], "../dist/pubDefend.iife.min.js", "pubdefend");
 		</script>
-		<script async src="../dist/pubDefend.iife.js" pd-prop="eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo"></script>
 
 		<div id="overlayAdb" style="display: none">
 			<div id="divAdBlocker">

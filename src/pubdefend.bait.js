@@ -9,13 +9,13 @@ export function bait(callback) {
 		if (xhr.readyState === XMLHttpRequest.DONE) {
 			var status = xhr.status;
 			if (status === 0 || (status >= 200 && status < 400)) {
-				if (callback) callback(false);
+				if (callback) callback("false");
 				return;
 			}
 		}
 	};
 	xhr.onerror = function (e) {
-		if (callback) callback(true);
+		if (callback) callback("true");
 	};
 	xhr.send(null);
 }

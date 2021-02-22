@@ -2,9 +2,7 @@ var pubdefend = (function () {
 	'use strict';
 
 	var pd = window.pubDefend || window.pubdefend || {};
-	pd.state = {
-	  ws: false
-	};
+	pd.state = {};
 	pd.store = {};
 	pd.eventQueue = [];
 	pd.slotsQueue = [];
@@ -27,27 +25,29 @@ var pubdefend = (function () {
 	function log(isDebug) {
 	  if (isDebug && window.console && typeof console.log === "function") {
 	    window.logger = {
-	      log: window.console.log.bind(console.log),
-	      error: window.console.error.bind(console.error),
+	      log: window.console.log.bind(console.log)
+	      /* error: window.console.error.bind(console.error),
 	      info: window.console.info.bind(console.info),
 	      warn: window.console.warn.bind(console.warn),
 	      //table: window.console.table.bind(console.table),
 	      group: window.console.group.bind(console.group),
 	      groupEnd: window.console.groupEnd.bind(console.groupEnd),
-	      debug: window.console.debug.bind(console.debug)
+	      debug: window.console.debug.bind(console.debug), */
+
 	    };
 	  } else {
 	    var __no_op = function __no_op() {};
 
 	    window.logger = {
-	      log: __no_op,
-	      error: __no_op,
+	      log: __no_op
+	      /* error: __no_op,
 	      warn: __no_op,
 	      info: __no_op,
 	      //table: __no_op,
 	      group: __no_op,
 	      groupEnd: __no_op,
-	      debug: __no_op
+	      debug: __no_op, */
+
 	    };
 	  }
 	}
@@ -566,7 +566,7 @@ var pubdefend = (function () {
 	  } */
 	}
 	function store(obj, prop, val) {
-	  if (!isObject(obj)) return;
+	  if (!isObject(obj) || !prop || 0 === prop.length || !val || 0 === val.length) return;
 	  obj[prop] = val;
 	  /* <Dev Only> */
 
@@ -728,12 +728,12 @@ var pubdefend = (function () {
 	  }
 
 	  solts_req = Slots();
-	  store(_store, "gtag_slots", solts_req.length);
-	  logger.log("googaltag:: slots count:", solts_req);
+	  store(_store, "gs", solts_req.length);
+	  logger.log("pubdefend[g]:: slots count:", solts_req);
 	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	  if (callback) {
-	    callback(Slots());
+	    callback("listen");
 	  }
 
 	  return;
@@ -750,11 +750,11 @@ var pubdefend = (function () {
 	    2: event.isEmpty,
 	    3: event.size
 	  });
-	  logger.log("googaltag:: Slot", slot.getSlotElementId(), "finished rendering.");
+	  logger.log("pubdefend[g]:: Slot", slot.getSlotElementId(), "finished rendering.");
 
 	  if (!rendered) {
 	    var FindElements = domQuery.find('div[id*="google_ad"]');
-	    store(_store, "gtag_impr", FindElements.length);
+	    store(_store, "gi", FindElements.length);
 	    customEvent(config.constants.gtag, FindElements.length);
 
 	    if (callback) {
@@ -780,14 +780,14 @@ var pubdefend = (function () {
 	      var status = xhr.status;
 
 	      if (status === 0 || status >= 200 && status < 400) {
-	        if (callback) callback(false);
+	        if (callback) callback("false");
 	        return;
 	      }
 	    }
 	  };
 
 	  xhr.onerror = function (e) {
-	    if (callback) callback(true);
+	    if (callback) callback("true");
 	  };
 
 	  xhr.send(null);
@@ -890,8 +890,7 @@ var pubdefend = (function () {
 	  self.pub = function (data, callback) {
 	    if (!data) return;
 	    var message = new Paho.MQTT.Message(data);
-	    message.destinationName = self.topic; //debug("SEND ON " + message.destinationName + " PAYLOAD " + data);
-	    //logger.log("SEND ON " + message.destinationName + " PAYLOAD " + data);
+	    message.destinationName = self.topic;
 
 	    if (callback) {
 	      setTimeout(callback);
@@ -917,16 +916,14 @@ var pubdefend = (function () {
 	   *  TODO:
 	   *  - follow changes in the fingerprints
 	   */
-	  store(_store$1, "vid", fp);
+	  store(_store$1, "fp", fp);
 	  /**
 	   *  publisher properties.
 	   */
 
-	  store(_store$1, "host", getHostName());
+	  store(_store$1, "ho", getHostName());
 	  var pub = atob(detectPid("[pd-prop]").id);
-	  var pubify = JSON.stringify(pub);
-	  console.log(JSON.parse(pubify));
-	  store(_store$1, "pub", JSON.parse(pubify));
+	  store(_store$1, "pu", JSON.parse(pub));
 	  /** 
 	   * Old method
 	   *  
@@ -944,8 +941,8 @@ var pubdefend = (function () {
 
 	  var _browser = detectBrowser();
 
-	  store(_store$1, "browser", _browser);
-	  store(_store$1, "isMobile", isMobile);
+	  store(_store$1, "br", _browser);
+	  store(_store$1, "mo", isMobile);
 
 	  if (callback) {
 	    callback("isReady");
@@ -959,7 +956,7 @@ var pubdefend = (function () {
 	  var gtag = window["googletag"];
 	  var apiReady = setInterval(function () {
 	    if (gtag && gtag["apiReady"]) {
-	      logger.log("googaltag:: apiReady (#" + limit + ")");
+	      logger.log("pubdefend[g]:: apiReady (#" + limit + ")");
 	      clearInterval(apiReady);
 	      googletagHandler(callback);
 	    }
@@ -977,7 +974,7 @@ var pubdefend = (function () {
 	  documentReady(function () {
 	    logger.log("pubdefend:: init..");
 	    gtagApiReady(function (res) {
-	      if (res) logger.log("googaltag::", res);
+	      res && logger.log("pubdefend[g]::", res);
 	    });
 	    /**
 	     * Load Paho mqtt lib.
@@ -988,17 +985,18 @@ var pubdefend = (function () {
 
 	    isReady(function (status) {
 	      logger.log("pubdefend::", status);
+	      pd.state[config.constants.ws] = false;
 	      /** AD blocker bait  */
 
-	      var testBait = bait(function (e) {
-	        if (!e.toString()) return;
-	        store(_store$1, "ab", e);
+	      var testBait = bait(function (res) {
+	        if (!res) return;
+	        store(_store$1, "ab", res);
 	        pd.state[config.constants.adblocker] = true;
-	        customEvent(config.constants.adblocker, e.toString());
+	        customEvent(config.constants.adblocker, res);
 	      });
-	      logger.log("pubdefend:: Loading paho lib");
+	      logger.log("pubdefend:: Loading ws");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-	        logger.info("pubdefend[ws]:: ready");
+	        logger.log("pubdefend[ws]:: ready");
 	        ws = new MqttClient();
 	      });
 
@@ -1015,21 +1013,20 @@ var pubdefend = (function () {
 	          console.log("pubdefend[EventQueue]::", prop, event.detail.payload);
 	        }
 
-	        window.removeEventListener(event.type, stateQueueHandler, false);
+	        window.removeEventListener(config.constants[prop], stateQueueHandler, false);
 	      }
 
 	      var onImpr = window.addEventListener(config.constants.gtag, stateQueueHandler.bind(null, config.constants.gtag), false);
 	      var onAb = window.addEventListener(config.constants.adblocker, stateQueueHandler.bind(null, config.constants.adblocker), false);
 	      window.addEventListener(config.constants.ws, function (event) {
-	        console.info("pubdefend[ws Listener]::", event.detail.payload);
-	        console.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-	        console.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-	        console.table(pd.state);
-	        pd.state[config.constants.ws] = true;
-	        logger.info(getStore());
-	        ws.pub(JSON.stringify(getStore(true)));
-	        console.table(pd.store);
 	        logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
+	        logger.info("pubdefend[ws Listener]::", event.detail.payload);
+	        logger.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	        logger.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	        logger.table(pd.state);
+	        pd.state[config.constants.ws] = true;
+	        logger.log(getStore());
+	        ws.pub(JSON.stringify(getStore(true)));
 	      }, true);
 	    });
 	  });

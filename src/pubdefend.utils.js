@@ -1,4 +1,3 @@
-import { config } from "./pubdefend.config";
 import { murmurhash3_32_gc } from "./pubdefend.fingerprint";
 
 /* Returns false for null and undefined, true for everything else. */

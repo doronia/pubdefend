@@ -30,13 +30,13 @@ export function googletagHandler(callback) {
 	}
 	solts_req = Slots();
 
-	store(_store, "gtag_slots", solts_req.length);
-	logger.log("googaltag:: slots count:", solts_req);
+	store(_store, "gs", solts_req.length);
+	logger.log("pubdefend[g]:: slots count:", solts_req);
 
 	Listener = gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
 	if (callback) {
-		callback(Slots());
+		callback("listen");
 	}
 
 	return;
@@ -49,11 +49,11 @@ function listenForSlots(callback, event) {
 	var slotIsVisible = checkIfVisible(slotElm);
 	solts_arr[slotId] = { 0: true, 1: slotIsVisible, 2: event.isEmpty, 3: event.size };
 
-	logger.log("googaltag:: Slot", slot.getSlotElementId(), "finished rendering.");
+	logger.log("pubdefend[g]:: Slot", slot.getSlotElementId(), "finished rendering.");
 
 	if (!rendered) {
 		var FindElements = domQuery.find('div[id*="google_ad"]');
-		store(_store, "gtag_impr", FindElements.length);
+		store(_store, "gi", FindElements.length);
 		customEvent(config.constants.gtag, FindElements.length);
 		if (callback) {
 			callback(FindElements);
@@ -66,7 +66,7 @@ var listenForSlotsCallback = function (arr) {
 	if (isArray(arr)) {
 		/* var slotObj = {};
 		arr.forEach(function (val) {
-			logger.info(val.parentElement.id);
+			logger.log(val.parentElement.id);
 			var pid = val.parentElement.id,
 				firstc = val.firstElementChild.nodeName,
 				firstcid = val.firstElementChild.id;

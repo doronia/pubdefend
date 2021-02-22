@@ -30,7 +30,7 @@ export function googletagHandler(callback) {
 	}
 	solts_req = Slots();
 
-	store(_store, "gs", solts_req.length);
+	store(_store, "gds", solts_req.length);
 	logger.log("pubdefend[g]:: slots count:", solts_req);
 
 	Listener = gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
@@ -53,7 +53,7 @@ function listenForSlots(callback, event) {
 
 	if (!rendered) {
 		var FindElements = domQuery.find('div[id*="google_ad"]');
-		store(_store, "gi", FindElements.length);
+		store(_store, "grs", FindElements.length);
 		customEvent(config.constants.gtag, FindElements.length);
 		if (callback) {
 			callback(FindElements);

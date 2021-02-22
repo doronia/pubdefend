@@ -89,21 +89,6 @@ export const detectPid = function (str) {
 	};
 };
 
-export function parseBase64(str) {
-	if (!str) return;
-
-	var decodeStr = JSON.stringify(atob(str));
-	console.table(JSON.parse(atob(str)));
-
-	var properties = decodeStr.split(",");
-	var obj = {};
-	properties.forEach(function (property) {
-		var prop = property.split(":");
-		obj[prop[0]] = prop[1];
-	});
-	return obj;
-}
-
 export const canStringify = typeof JSON !== "undefined" && typeof JSON.stringify !== "undefined";
 
 export const documentReady = function (callback) {

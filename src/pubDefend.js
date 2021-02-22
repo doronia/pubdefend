@@ -2,7 +2,7 @@ import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
 import { log } from "./pubdefend.debug";
 import { runningOnBrowser, isBot, isMobile, detectBrowser } from "./pubdefend.environment";
-import { documentReady, loadScript, detectPid, getHostName, parseBase64 } from "./pubdefend.utils";
+import { documentReady, loadScript, detectPid, getHostName, uniqueID } from "./pubdefend.utils";
 import { googletagHandler } from "./pubdefend.google";
 import { fp } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
@@ -36,9 +36,9 @@ function isReady(callback) {
 	/**
 	 *  publisher properties.
 	 */
-	store(_store, "ho", getHostName());
+	store(_store, "hos", getHostName());
 	var pub = atob(detectPid("[pd-prop]").id);
-	store(_store, "pu", JSON.parse(pub));
+	store(_store, "pub", JSON.parse(pub));
 
 	/** 
 	 * Old method
@@ -49,15 +49,13 @@ function isReady(callback) {
 	 console.table(_pdPop);
 	 * */
 
-	/** generate session id
-	 *  Replaced by fingerPrint
-	 *  var _sid = uniqueID();
-	 *  store(_store, "sid", _sid);
-	 */
-	var _browser = detectBrowser();
-	store(_store, "br", _browser);
+	/* generate session id */
+	store(_store, "sid", uniqueID());
 
-	store(_store, "mo", isMobile);
+	var _browser = detectBrowser();
+	store(_store, "brw", _browser);
+
+	store(_store, "mob", isMobile);
 
 	if (callback) {
 		callback("isReady");
@@ -136,10 +134,10 @@ if (runningOnBrowser && !isBot) {
 				config.constants.ws,
 				function (event) {
 					logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
-					logger.info("pubdefend[ws Listener]::", event.detail.payload);
-					logger.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-					logger.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-					logger.table(pd.state);
+					logger.log("pubdefend[ws Listener]::", event.detail.payload);
+					logger.log("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+					logger.log("pubdefend[ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+					logger.log(pd.state);
 					pd.state[config.constants.ws] = true;
 
 					logger.log(getStore());

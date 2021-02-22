@@ -504,6 +504,10 @@ var pubdefend = (function () {
 
 	  return a;
 	}
+	function uniqueID() {
+	  var uid = new Date().getTime().toString().concat(performance.now());
+	  return murmurhash3_32_gc(uid);
+	}
 
 	var LOG_ELEMENT = "log";
 	function appendLog(text) {
@@ -728,7 +732,7 @@ var pubdefend = (function () {
 	  }
 
 	  solts_req = Slots();
-	  store(_store, "gs", solts_req.length);
+	  store(_store, "gds", solts_req.length);
 	  logger.log("pubdefend[g]:: slots count:", solts_req);
 	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
 
@@ -754,7 +758,7 @@ var pubdefend = (function () {
 
 	  if (!rendered) {
 	    var FindElements = domQuery.find('div[id*="google_ad"]');
-	    store(_store, "gi", FindElements.length);
+	    store(_store, "grs", FindElements.length);
 	    customEvent(config.constants.gtag, FindElements.length);
 
 	    if (callback) {
@@ -921,9 +925,9 @@ var pubdefend = (function () {
 	   *  publisher properties.
 	   */
 
-	  store(_store$1, "ho", getHostName());
+	  store(_store$1, "hos", getHostName());
 	  var pub = atob(detectPid("[pd-prop]").id);
-	  store(_store$1, "pu", JSON.parse(pub));
+	  store(_store$1, "pub", JSON.parse(pub));
 	  /** 
 	   * Old method
 	   *  
@@ -933,16 +937,14 @@ var pubdefend = (function () {
 	   console.table(_pdPop);
 	   * */
 
-	  /** generate session id
-	   *  Replaced by fingerPrint
-	   *  var _sid = uniqueID();
-	   *  store(_store, "sid", _sid);
-	   */
+	  /* generate session id */
+
+	  store(_store$1, "sid", uniqueID());
 
 	  var _browser = detectBrowser();
 
-	  store(_store$1, "br", _browser);
-	  store(_store$1, "mo", isMobile);
+	  store(_store$1, "brw", _browser);
+	  store(_store$1, "mob", isMobile);
 
 	  if (callback) {
 	    callback("isReady");
@@ -1020,10 +1022,10 @@ var pubdefend = (function () {
 	      var onAb = window.addEventListener(config.constants.adblocker, stateQueueHandler.bind(null, config.constants.adblocker), false);
 	      window.addEventListener(config.constants.ws, function (event) {
 	        logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
-	        logger.info("pubdefend[ws Listener]::", event.detail.payload);
-	        logger.info("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-	        logger.info("pubdefend[ws staet]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-	        logger.table(pd.state);
+	        logger.log("pubdefend[ws Listener]::", event.detail.payload);
+	        logger.log("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	        logger.log("pubdefend[ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	        logger.log(pd.state);
 	        pd.state[config.constants.ws] = true;
 	        logger.log(getStore());
 	        ws.pub(JSON.stringify(getStore(true)));

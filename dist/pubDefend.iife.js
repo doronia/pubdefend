@@ -825,7 +825,6 @@ var pubdefend = (function () {
 
 
 	  function Connected() {
-	    logger.log("pubdefend:: ws Connected");
 	    self.client.subscribe(self.topic, {
 	      qos: 1
 	    });

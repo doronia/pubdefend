@@ -1,4 +1,5 @@
 /**
+ *  not in use
  *  https://www.wut.de/e-577ww-07-apus-000.php
  *  https://github.com/orbitbot/web-mqtt-client
  *  http://www.eclipse.org/paho/files/jsdoc/Paho.MQTT.Client.html

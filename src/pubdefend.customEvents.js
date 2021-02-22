@@ -1,6 +1,7 @@
-//https://github.com/shystruk/custom-event-js/blob/master/src/custom-event-js.js
-
 /* 
+not in use
+
+https://github.com/shystruk/custom-event-js/blob/master/src/custom-event-js.js
 import CustomEvent from 'custom-event-js'
 
 // Listen event 'SHOW_NAME'

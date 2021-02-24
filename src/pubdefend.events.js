@@ -1,8 +1,8 @@
 import { pd } from "./pubdefend.init";
+import { config } from "./pubdefend.config";
 import { isObject } from "./pubdefend.utils";
 import { entries } from "./pubdefend.polyfills";
 import { appendLog } from "./pubdefend.logs";
-
 var _eventQueue = pd.eventQueue;
 
 /* 
@@ -39,7 +39,9 @@ export const saveEventQueue = function (eventQueue) {
 } */
 
 export function saveEventQueue(eventName, data) {
-	if (!eventName) _eventQueue[eventName] = data;
+	if (!eventName || !data) return;
+
+	_eventQueue[eventName] = data;
 
 	/* if (_eventQueue.indexOf(name) !== -1) {
 		_eventQueue[name].push(data);
@@ -85,6 +87,25 @@ export function customEvent(eventName, payload) {
 		event.initCustomEvent(eventString, false, false, { payload });
 	}
 	window.dispatchEvent(event);
+}
+
+export function stateListeners(event) {
+	/**
+	 TODO: handle ws publish if not connected.
+	 */
+	if (!event.type) return;
+	logger.log("pubdefend [" + event.type + " Listener]:: ws", pd.state[config.constants.ws]);
+
+	pd.state[event.type] = true;
+
+	if (pd.state[config.constants.ws]) {
+		/* Dev only */
+		saveEventQueue(event.type, event.detail.payload);
+		logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
+		/* publish message to server */
+		ws.pub(JSON.stringify(getStore(false)));
+	}
+	window.removeEventListener(event.type, stateListeners);
 }
 
 /*

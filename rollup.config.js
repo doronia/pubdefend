@@ -99,7 +99,7 @@ const terserOptions = {
 		comments: false,
 	},
 };
-
+var xxx;
 module.exports = [
 	{
 		input: "src/pubDefend.js",

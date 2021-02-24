@@ -26,29 +26,9 @@ var pubdefend = (function () {
 	  if (isDebug && window.console && typeof console.log === "function") {
 	    window.logger = {
 	      log: window.console.log.bind(console.log)
-	      /* error: window.console.error.bind(console.error),
-	      info: window.console.info.bind(console.info),
-	      warn: window.console.warn.bind(console.warn),
-	      //table: window.console.table.bind(console.table),
-	      group: window.console.group.bind(console.group),
-	      groupEnd: window.console.groupEnd.bind(console.groupEnd),
-	      debug: window.console.debug.bind(console.debug), */
-
 	    };
 	  } else {
-	    var __no_op = function __no_op() {};
-
-	    window.logger = {
-	      log: __no_op
-	      /* error: __no_op,
-	      warn: __no_op,
-	      info: __no_op,
-	      //table: __no_op,
-	      group: __no_op,
-	      groupEnd: __no_op,
-	      debug: __no_op, */
-
-	    };
+	    window.logger = function () {};
 	  }
 	}
 
@@ -232,15 +212,6 @@ var pubdefend = (function () {
 	}
 
 	var entries = Object.entries ? Object.entries : entriesPolyFill;
-	var isArray = function isArray(obj) {
-	  if (!Array.isArray) {
-	    Array.isArray = function (arg) {
-	      return Object.prototype.toString.call(arg) === "[object Array]";
-	    };
-	  } else {
-	    return Array.isArray;
-	  }
-	};
 
 	function murmurhash3_32_gc(key) {
 	  var remainder = key.length & 3; // key.length % 4
@@ -562,7 +533,8 @@ var pubdefend = (function () {
 	} */
 
 	function saveEventQueue(eventName, data) {
-	  if (!eventName) _eventQueue[eventName] = data;
+	  if (!eventName || !data) return;
+	  _eventQueue[eventName] = data;
 	  /* if (_eventQueue.indexOf(name) !== -1) {
 	  	_eventQueue[name].push(data);
 	  } else {
@@ -627,6 +599,25 @@ var pubdefend = (function () {
 	  }
 
 	  window.dispatchEvent(event);
+	}
+	function stateListeners(event) {
+	  /**
+	   TODO: handle ws publish if not connected.
+	   */
+	  if (!event.type) return;
+	  logger.log("pubdefend [" + event.type + " Listener]:: ws", pd.state[config.constants.ws]);
+	  pd.state[event.type] = true;
+
+	  if (pd.state[config.constants.ws]) {
+	    /* Dev only */
+	    saveEventQueue(event.type, event.detail.payload);
+	    logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
+	    /* publish message to server */
+
+	    ws.pub(JSON.stringify(getStore(false)));
+	  }
+
+	  window.removeEventListener(event.type, stateListeners);
 	}
 	/*
 	// Dev only
@@ -720,11 +711,9 @@ var pubdefend = (function () {
 	var solts_req = 0,
 	    rendered = false;
 	function googletagHandler(callback) {
-	  var gtag = window["googletag"];
 	  /* googletag defined Slots */
-
 	  function Slots() {
-	    return window.googletag.pubads().getSlots().map(function (slot) {
+	    return window["googletag"].pubads().getSlots().map(function (slot) {
 	      return {
 	        id: slot.getSlotElementId()
 	      };
@@ -733,8 +722,8 @@ var pubdefend = (function () {
 
 	  solts_req = Slots();
 	  store(_store, "gds", solts_req.length);
-	  logger.log("pubdefend[g]:: slots count:", solts_req);
-	  gtag.pubads().addEventListener("slotRenderEnded", listenForSlots.bind(null, listenForSlotsCallback), false);
+	  logger.log("pubdefend [g]:: slots count:", solts_req);
+	  window["googletag"].pubads().addEventListener("slotRenderEnded", listenForSlots, false);
 
 	  if (callback) {
 	    callback("listen");
@@ -743,7 +732,7 @@ var pubdefend = (function () {
 	  return;
 	}
 
-	function listenForSlots(callback, event) {
+	function listenForSlots(event) {
 	  var slot = event.slot;
 	  var slotId = slot.getSlotElementId();
 	  var slotElm = document.getElementById(slotId);
@@ -754,24 +743,16 @@ var pubdefend = (function () {
 	    2: event.isEmpty,
 	    3: event.size
 	  });
-	  logger.log("pubdefend[g]:: Slot", slot.getSlotElementId(), "finished rendering.");
+	  logger.log("pubdefend [g]:: Slot", slot.getSlotElementId(), "finished rendering.");
 
 	  if (!rendered) {
 	    var FindElements = domQuery.find('div[id*="google_ad"]');
 	    store(_store, "grs", FindElements.length);
 	    customEvent(config.constants.gtag, FindElements.length);
-
-	    if (callback) {
-	      callback(FindElements);
-	    }
 	  }
 
 	  rendered = true;
 	}
-
-	var listenForSlotsCallback = function listenForSlotsCallback(arr) {
-	  if (isArray()) ;
-	};
 
 	function bait(callback) {
 	  var endpoint = config.endpoints;
@@ -900,6 +881,7 @@ var pubdefend = (function () {
 	    }
 
 	    self.client.send(message);
+	    logger.log("pubdefend [ws]:: published");
 	  };
 
 	  return self;
@@ -910,7 +892,7 @@ var pubdefend = (function () {
 	//Promise.resolve(32).then(x => logger.log(x));
 
 	pd.getStore = getStore;
-	var ws;
+	var ws$1;
 	var _store$1 = pd.store;
 
 	function isReady(callback) {
@@ -946,7 +928,7 @@ var pubdefend = (function () {
 	  store(_store$1, "mob", isMobile);
 
 	  if (callback) {
-	    callback("isReady");
+	    callback("Ready");
 	  }
 
 	  return "isReady";
@@ -957,7 +939,7 @@ var pubdefend = (function () {
 	  var gtag = window["googletag"];
 	  var apiReady = setInterval(function () {
 	    if (gtag && gtag["apiReady"]) {
-	      logger.log("pubdefend[g]:: apiReady (#" + limit + ")");
+	      logger.log("pubdefend [g]:: Ready (#" + limit + ")");
 	      clearInterval(apiReady);
 	      googletagHandler(callback);
 	    }
@@ -975,7 +957,7 @@ var pubdefend = (function () {
 	  documentReady(function () {
 	    logger.log("pubdefend:: init..");
 	    gtagApiReady(function (res) {
-	      res && logger.log("pubdefend[g]::", res);
+	      res && logger.log("pubdefend [g]::", res);
 	    });
 	    /**
 	     * Load Paho mqtt lib.
@@ -995,40 +977,22 @@ var pubdefend = (function () {
 	        pd.state[config.constants.adblocker] = true;
 	        customEvent(config.constants.adblocker, res);
 	      });
-	      logger.log("pubdefend:: Loading ws");
+	      logger.log("pubdefend[ws]:: init..");
 	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-	        logger.log("pubdefend[ws]:: ready");
-	        ws = new MqttClient();
+	        logger.log("pubdefend [ws]:: ready");
+	        ws$1 = new MqttClient();
 	      });
-
-	      function stateQueueHandler(prop, event) {
-	        /**
-	         TODO: handle ws publish if not connected.
-	        	*/
-	        if (!prop) return;
-	        console.log("pubdefend[" + prop + " Listener]:: ws", pd.state[config.constants.ws]);
-	        pd.state[prop] = true;
-
-	        if (pd.state[config.constants.ws]) {
-	          saveEventQueue(prop, event.detail.payload);
-	          console.log("pubdefend[EventQueue]::", prop, event.detail.payload);
-	        }
-
-	        window.removeEventListener(config.constants[prop], stateQueueHandler, false);
-	      }
-
-	      var onImpr = window.addEventListener(config.constants.gtag, stateQueueHandler.bind(null, config.constants.gtag), false);
-	      var onAb = window.addEventListener(config.constants.adblocker, stateQueueHandler.bind(null, config.constants.adblocker), false);
-	      window.addEventListener(config.constants.ws, function (event) {
-	        logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
-	        logger.log("pubdefend[ws Listener]::", event.detail.payload);
-	        logger.log("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-	        logger.log("pubdefend[ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-	        logger.log(pd.state);
+	      var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
+	      var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
+	      window.addEventListener(config.constants.ws, function pub(event) {
+	        logger.log("pubdefend [ws Listener]::", event.detail.payload);
+	        logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	        logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
 	        pd.state[config.constants.ws] = true;
 	        logger.log(getStore());
-	        ws.pub(JSON.stringify(getStore(true)));
-	      }, true);
+	        ws$1.pub(JSON.stringify(getStore(false)));
+	        window.removeEventListener(config.constants.ws, pub);
+	      });
 	    });
 	  });
 	}

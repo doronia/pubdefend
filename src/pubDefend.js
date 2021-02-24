@@ -6,7 +6,7 @@ import { documentReady, loadScript, detectPid, getHostName, uniqueID } from "./p
 import { googletagHandler } from "./pubdefend.google";
 import { fp } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
-import { customEvent, saveEventQueue, store, getStore } from "./pubdefend.events";
+import { customEvent, stateListeners, saveEventQueue, store, getStore } from "./pubdefend.events";
 import { MqttClient } from "./pubdefend.mqtt";
 
 /* Polyfills*/
@@ -58,7 +58,7 @@ function isReady(callback) {
 	store(_store, "mob", isMobile);
 
 	if (callback) {
-		callback("isReady");
+		callback("Ready");
 	}
 	return "isReady";
 }
@@ -68,7 +68,7 @@ function gtagApiReady(callback) {
 	var gtag = window["googletag"];
 	var apiReady = setInterval(function () {
 		if (gtag && gtag["apiReady"]) {
-			logger.log("pubdefend[g]:: apiReady (#" + limit + ")");
+			logger.log("pubdefend [g]:: Ready (#" + limit + ")");
 			clearInterval(apiReady);
 			googletagHandler(callback);
 		}
@@ -86,7 +86,7 @@ if (runningOnBrowser && !isBot) {
 		logger.log("pubdefend:: init..");
 
 		gtagApiReady(function (res) {
-			res && logger.log("pubdefend[g]::", res);
+			res && logger.log("pubdefend [g]::", res);
 		});
 		/**
 		 * Load Paho mqtt lib.
@@ -105,46 +105,25 @@ if (runningOnBrowser && !isBot) {
 				customEvent(config.constants.adblocker, res);
 			});
 
-			logger.log("pubdefend:: Loading ws");
+			logger.log("pubdefend[ws]:: init..");
 			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-				logger.log("pubdefend[ws]:: ready");
+				logger.log("pubdefend [ws]:: ready");
 				ws = new MqttClient();
 			});
 
-			function stateQueueHandler(prop, event) {
-				/**
-				 TODO: handle ws publish if not connected.
-			 	*/
-				if (!prop) return;
-				console.log("pubdefend[" + prop + " Listener]:: ws", pd.state[config.constants.ws]);
+			var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
+			var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
 
-				pd.state[prop] = true;
+			window.addEventListener(config.constants.ws, function pub(event) {
+				logger.log("pubdefend [ws Listener]::", event.detail.payload);
+				logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+				logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+				pd.state[config.constants.ws] = true;
 
-				if (pd.state[config.constants.ws]) {
-					saveEventQueue(prop, event.detail.payload);
-					console.log("pubdefend[EventQueue]::", prop, event.detail.payload);
-				}
-				window.removeEventListener(config.constants[prop], stateQueueHandler, false);
-			}
-
-			var onImpr = window.addEventListener(config.constants.gtag, stateQueueHandler.bind(null, config.constants.gtag), false);
-			var onAb = window.addEventListener(config.constants.adblocker, stateQueueHandler.bind(null, config.constants.adblocker), false);
-
-			window.addEventListener(
-				config.constants.ws,
-				function (event) {
-					logger.log("pubdefend[status]:: ws", pd.state[config.constants.ws]);
-					logger.log("pubdefend[ws Listener]::", event.detail.payload);
-					logger.log("pubdefend[ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-					logger.log("pubdefend[ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-					logger.log(pd.state);
-					pd.state[config.constants.ws] = true;
-
-					logger.log(getStore());
-					ws.pub(JSON.stringify(getStore(true)));
-				},
-				true
-			);
+				logger.log(getStore());
+				ws.pub(JSON.stringify(getStore(false)));
+				window.removeEventListener(config.constants.ws, pub);
+			});
 		});
 	});
 }

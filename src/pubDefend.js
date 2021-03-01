@@ -31,7 +31,7 @@ function isReady(callback) {
 	 *  - follow changes in the fingerprints
 	 */
 
-	store(_store, "fp", fp);
+	store(_store, "fip", fp);
 
 	/**
 	 *  publisher properties.
@@ -121,8 +121,9 @@ if (runningOnBrowser && !isBot) {
 				pd.state[config.constants.ws] = true;
 
 				logger.log(getStore());
-				ws.pub(JSON.stringify(getStore(false)));
+				ws.pub(JSON.stringify(getStore(true)));
 				window.removeEventListener(config.constants.ws, pub);
+				logger.log(getStore(true));
 			});
 		});
 	});

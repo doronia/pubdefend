@@ -901,7 +901,7 @@ var pubdefend = (function () {
 	   *  TODO:
 	   *  - follow changes in the fingerprints
 	   */
-	  store(_store$1, "fp", fp);
+	  store(_store$1, "fip", fp);
 	  /**
 	   *  publisher properties.
 	   */
@@ -990,8 +990,9 @@ var pubdefend = (function () {
 	        logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
 	        pd.state[config.constants.ws] = true;
 	        logger.log(getStore());
-	        ws$1.pub(JSON.stringify(getStore(false)));
+	        ws$1.pub(JSON.stringify(getStore(true)));
 	        window.removeEventListener(config.constants.ws, pub);
+	        logger.log(getStore(true));
 	      });
 	    });
 	  });

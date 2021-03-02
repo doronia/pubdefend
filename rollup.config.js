@@ -1,24 +1,25 @@
+//import https from "https";
+//const fetch = require("node-fetch");
 import { terser } from "rollup-plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import babel from "rollup-plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "rollup-plugin-replace";
 import banner from "rollup-plugin-banner";
+import modify from "rollup-plugin-modify";
 
-import { decode, encode } from "universal-base64url";
+import { encode } from "universal-base64url";
+
+import { getData } from "./srv/api/fetch";
 
 const { NODE_ENV = "development", DOMAIN = "" } = process.env;
-
 const isProduction = NODE_ENV === "production";
-
 const ANALYZE = process.env.ANALYZE ? process.env.ANALYZE === "true" : false;
-
 const publisher = isProduction ? "/" + DOMAIN + "/" : "";
 
-//var base64query = encode("domain:" + DOMAIN + ",analytics:true,block:soft");
+//var modalCss = console.log(modalCss);
+
 var base64query = encode("domain:" + DOMAIN);
-console.log(base64query);
-console.log(decode(base64query));
 
 const output = isProduction ? base64query : `pubdefendnd.js`;
 
@@ -126,6 +127,12 @@ module.exports = [
 			},
 		],
 		plugins: [
+			replace({
+				//exclude: "node_modules/**",
+				//ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
+				ENV: JSON.stringify(process.env.DOMAIN),
+				__MODAL_CSS: JSON.stringify(getData()),
+			}),
 			resolve({
 				browser: true,
 			}),
@@ -148,11 +155,6 @@ module.exports = [
 				],
 			}),
 			commonjs(),
-			replace({
-				exclude: "node_modules/**",
-				//ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-				ENV: JSON.stringify(process.env.DOMAIN),
-			}),
 		],
 	},
 ];

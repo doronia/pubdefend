@@ -6,7 +6,8 @@
     "scripts": {
         "build": "rollup -c",
         "dev": "rollup -c --watch --environment NODE_ENV:production,DOMAIN:sponser.co.il",
-        "test": "node srv/api/parse.js"
+        "test": "node srv/api/parse.js",
+        "testFetch": "node srv/api/fetch.js"
     },
     "author": "",
     "license": "ISC",
@@ -25,8 +26,11 @@
     "dependencies": {
         "@rollup/plugin-commonjs": "^17.1.0",
         "core-js": "^3.8.3",
+        "node-fetch": "^2.6.1",
         "paho-mqtt": "^1.1.0",
+        "rollup-plugin-modify": "^3.0.0",
         "rollup-plugin-uglify": "^6.0.4",
+        "string-minify": "^1.0.1",
         "universal-base64url": "^1.1.0"
     }
 }

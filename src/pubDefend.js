@@ -30,7 +30,12 @@ function isReady(callback) {
 	 *  TODO:
 	 *  - follow changes in the fingerprints
 	 */
+	var _modalCss = __MODAL_CSS;
+	logger.log("_modalCss", _modalCss);
 
+	/**
+	 * store finger print value
+	 */
 	store(_store, "fip", fp);
 
 	/**
@@ -40,14 +45,7 @@ function isReady(callback) {
 	var pub = atob(detectPid("[pd-prop]").id);
 	store(_store, "pub", JSON.parse(pub));
 
-	/** 
-	 * Old method
-	 *  
-	 _p["d"] = ENV ? ENV : undefined;
-	 _p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
-	 var _pdPop = parseBase64(_p.p);
-	 console.table(_pdPop);
-	 * */
+	logger.log(ENV);
 
 	/* generate session id */
 	store(_store, "sid", uniqueID());

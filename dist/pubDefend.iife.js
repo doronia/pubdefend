@@ -901,6 +901,12 @@ var pubdefend = (function () {
 	   *  TODO:
 	   *  - follow changes in the fingerprints
 	   */
+	  var _modalCss = undefined;
+	  logger.log("_modalCss", _modalCss);
+	  /**
+	   * store finger print value
+	   */
+
 	  store(_store$1, "fip", fp);
 	  /**
 	   *  publisher properties.
@@ -909,15 +915,7 @@ var pubdefend = (function () {
 	  store(_store$1, "hos", getHostName());
 	  var pub = atob(detectPid("[pd-prop]").id);
 	  store(_store$1, "pub", JSON.parse(pub));
-	  /** 
-	   * Old method
-	   *  
-	   _p["d"] = "sponser.co.il" ? "sponser.co.il" : undefined;
-	   _p["ss"] = -1 !== _p["h"].indexOf(_p["d"].toString());
-	   var _pdPop = parseBase64(_p.p);
-	   console.table(_pdPop);
-	   * */
-
+	  logger.log("sponser.co.il");
 	  /* generate session id */
 
 	  store(_store$1, "sid", uniqueID());

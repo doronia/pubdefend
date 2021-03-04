@@ -1,3 +1,5 @@
+import { isRegExp } from "util";
+
 const https = require("https");
 const request = require("request");
 /* module.exports = function getData(cb) {
@@ -76,7 +78,13 @@ export function request(cb) {
 
 var cssUrl = "https://c.pubdefend.com/orgs/sponsercoil/pd.base.min.css";
 
-export const getAccessToken = () => {
+export const getAccessToken = (endpoint) => {
+	/* const baseEndPoint = "https://c.pubdefend.com/orgs/";
+	var baseUrl = baseEndPoint;
+	if (endpoint) {
+		baseUrl = baseUrl + endpoint;
+		console.log(baseUrl);
+	} */
 	return new Promise((resolve, reject) => {
 		const Options = {
 			method: "GET",

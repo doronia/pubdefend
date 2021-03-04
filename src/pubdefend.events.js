@@ -105,6 +105,17 @@ export function stateListeners(event) {
 		/* publish message to server */
 		ws.pub(JSON.stringify(getStore(false)));
 	}
+
+	/**
+	 * Check if adblocker active and display modalBox to the user.
+	 *
+	 */
+	if (event.type == config.constants.adblocker && event.detail.payload == "true") {
+		console.log("adblocker active?", event.detail.payload);
+		document.getElementById("overlayAdb").style.display = "block";
+		//overlayAdb
+	}
+
 	window.removeEventListener(event.type, stateListeners);
 }
 

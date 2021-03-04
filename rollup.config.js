@@ -25,8 +25,6 @@ console.log("-----");
 (async function () {
 	try {
 		let accessToken = await getAccessToken();
-		//console.log(accessToken);
-		//return JSON.stringify(accessToken);
 		return accessToken;
 	} catch (e) {
 		return console.log(e);

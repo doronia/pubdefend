@@ -87,6 +87,7 @@ if (runningOnBrowser && !isBot) {
 		gtagApiReady(function (res) {
 			res && logger.log("pubdefend [g]::", res);
 		});
+
 		/**
 		 * Load Paho mqtt lib.
 		 * TODO:

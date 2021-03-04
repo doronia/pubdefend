@@ -6,18 +6,32 @@ import babel from "rollup-plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "rollup-plugin-replace";
 import banner from "rollup-plugin-banner";
-import modify from "rollup-plugin-modify";
 
 import { encode } from "universal-base64url";
-
-import { getData } from "./srv/api/fetch";
 
 const { NODE_ENV = "development", DOMAIN = "" } = process.env;
 const isProduction = NODE_ENV === "production";
 const ANALYZE = process.env.ANALYZE ? process.env.ANALYZE === "true" : false;
 const publisher = isProduction ? "/" + DOMAIN + "/" : "";
 
-//var modalCss = console.log(modalCss);
+import { getAccessToken } from "./srv/api/fetch";
+
+//var dataCss2 = JSON.stringify(getRequest_a);
+//console.log("dataCss", dataCss);
+console.log("-----");
+//var dataCss = JSON.stringify(getRequest_b);
+
+//var accessToken = "";
+(async function () {
+	try {
+		let accessToken = await getAccessToken();
+		//console.log(accessToken);
+		//return JSON.stringify(accessToken);
+		return accessToken;
+	} catch (e) {
+		return console.log(e);
+	}
+})();
 
 var base64query = encode("domain:" + DOMAIN);
 
@@ -101,60 +115,62 @@ const terserOptions = {
 	},
 };
 
-module.exports = [
-	{
-		input: "src/pubDefend.js",
-		output: [
-			{
-				//dev
-				file: "dist/pubDefend.iife.js",
-				name: "pubdefend",
-				format: "iife",
-			},
-			{
-				//dev
-				file: "dist/pubDefend.iife.min.js",
-				name: "pubdefend",
-				format: "iife",
-				plugins: [terser(terserOptions_v2)],
-			},
-			{
-				//prod
-				file: "dist/" + publisher + output + ".js", //"dist/" + publisher + "pubDefend",
-				name: "pubdefend",
-				format: "iife",
-				plugins: [terser(terserOptions_prod), banner("PubDefend 1.1\nCopyright (c) 2021 Doron Miterani")],
-			},
-		],
-		plugins: [
-			replace({
-				//exclude: "node_modules/**",
-				//ENV: JSON.stringify(process.env.NODE_ENV || 'development'),
-				ENV: JSON.stringify(process.env.DOMAIN),
-				__MODAL_CSS: JSON.stringify(getData()),
-			}),
-			resolve({
-				browser: true,
-			}),
-			babel({
-				exclude: "node_modules/**",
-				babelrc: false,
-				presets: [
-					[
-						"@babel/preset-env",
-						{
-							targets: {
-								browsers: "ie >= 11",
-								//browsers: "> 0.5%, ie >= 11"
-							},
-							debug: ANALYZE,
-							modules: false,
-							useBuiltIns: false,
+export default (async () => ({
+	//module.exports = [
+	//	{
+	input: "src/pubDefend.js",
+	output: [
+		{
+			//dev
+			file: "dist/pubDefend.iife.js",
+			name: "pubdefend",
+			format: "iife",
+		},
+		{
+			//dev
+			file: "dist/pubDefend.iife.min.js",
+			name: "pubdefend",
+			format: "iife",
+			plugins: [terser(terserOptions_v2)],
+		},
+		{
+			//prod
+			file: "dist/" + publisher + output + ".js", //"dist/" + publisher + "pubDefend",
+			name: "pubdefend",
+			format: "iife",
+			plugins: [terser(terserOptions_prod), banner("PubDefend 1.1\nCopyright (c) 2021 Doron Miterani")],
+		},
+	],
+	plugins: [
+		replace({
+			exclude: "node_modules/**",
+			ENV: JSON.stringify(process.env.DOMAIN),
+			//__MODAL_CSS: dataCss,
+			__MODAL_CSS: JSON.stringify(await getAccessToken()),
+		}),
+		resolve({
+			browser: true,
+		}),
+		babel({
+			exclude: "node_modules/**",
+			babelrc: false,
+			presets: [
+				[
+					"@babel/preset-env",
+					{
+						targets: {
+							browsers: "ie >= 11",
+							//browsers: "> 0.5%, ie >= 11"
 						},
-					],
+						debug: ANALYZE,
+						modules: false,
+						useBuiltIns: false,
+					},
 				],
-			}),
-			commonjs(),
-		],
-	},
-];
+			],
+		}),
+		commonjs(),
+	],
+	//	},
+	//];
+}))();

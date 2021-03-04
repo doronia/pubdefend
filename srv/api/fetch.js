@@ -1,16 +1,41 @@
 const https = require("https");
-const minifier = require("string-minify");
+const request = require("request");
+/* module.exports = function getData(cb) {
+	//var cssUrl = "https://c.pubdefend.com/orgs/sponsercoil/pd.base.min.css";
+	var cssUrl = "https://www.sponser.co.il/11111.css";
+	var res = "";
+	axios
+		.get(cssUrl)
+		.then(function (response) {
+			// handle success
+			res = response.data;
+			//console.log(typeof response.data);
+			//console.log(res.toString());
+			if (cb) {
+				cb(res);
+			}
+			//return res;
+		})
+		.catch(function (error) {
+			// handle error
+			console.log(error);
+		});
+	return res.toString();
+	
+};
 
+/* 
 export function getData() {
 	var str = request(function (data) {
-		return JSON.stringify(data);
+		return data;
 	});
 	//var min = minifier(str);
-	console.log(str);
+	console.log("str", str);
 	return str;
+
 }
 
-function request(cb) {
+export function request(cb) {
 	var cssUrl = "https://c.pubdefend.com/orgs/sponsercoil/pd.base.css";
 
 	https
@@ -26,15 +51,15 @@ function request(cb) {
 				return;
 			}
 
-			//res.setEncoding("utf8");
+			res.setEncoding("utf8");
 			let rawData = "";
 			res.on("data", (chunk) => {
 				rawData += chunk;
 			});
 			res.on("end", () => {
 				try {
-					//const parsedData = JSON.stringify(rawData);
-					const parsedData = rawData;
+					const parsedData = JSON.stringify(rawData);
+					//const parsedData = rawData;
 					if (cb) {
 						cb(parsedData);
 					}
@@ -47,63 +72,19 @@ function request(cb) {
 		.on("error", (e) => {
 			console.error(`Got error: ${e.message}`);
 		});
-}
+} */
 
-/* 
-export function getData(cb) {
-	let data = "";
+var cssUrl = "https://c.pubdefend.com/orgs/sponsercoil/pd.base.min.css";
 
-	let options = {
-		host: "c.pubdefend.com/",
-		path: "/orgs/sponsercoil/pd.base.css",
-		method: "GET",
-	};
+export const getAccessToken = () => {
+	return new Promise((resolve, reject) => {
+		const Options = {
+			method: "GET",
+			url: cssUrl,
+		};
 
-	callback = function (response) {
-		response.on("data", function (chunk) {
-			data += chunk;
+		request(Options, function (err, res, body) {
+			return resolve(body);
 		});
-
-		response.on("end", function () {
-			console.log(JSON.stringify(data));
-			if (cb) {
-				cb(JSON.stringify(data));
-            }
-		});
-	};
-
-	https.request(options, callback).end();
-
-	return data;
-}
- */
-//return str;
-
-/* let request = https.get(cssUrl, (res) => {
-		if (res.statusCode !== 200) {
-			console.error(`Did not get an OK from the server. Code: ${res.statusCode}`);
-			res.resume();
-			return;
-		}
-		let data = "";
-
-		res.on("data", (chunk) => {
-			data += chunk;
-		});
-
-		res.on("close", () => {
-			//console.log("Retrieved all data");
-			//console.log(JSON.stringify(data));
-		});
-	}).end(); */
-//console.log(JSON.stringify(request));
-
-/* 
-    var modalCss = fetchOHLC(cssUrl);
-    console.log(modalCss); 
-    */
-//return JSON.stringify(data);
-
-/* module.exports = {
-	getData: getdata,
-}; */
+	});
+};

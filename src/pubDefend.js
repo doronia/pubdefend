@@ -8,7 +8,7 @@ import { fp } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
 import { customEvent, stateListeners, saveEventQueue, store, getStore } from "./pubdefend.events";
 import { MqttClient } from "./pubdefend.mqtt";
-
+import { addStyle } from "./pubdefend.dom";
 /* Polyfills*/
 //import 'core-js/features/promise';
 //Promise.resolve(32).then(x => logger.log(x));
@@ -31,7 +31,10 @@ function isReady(callback) {
 	 *  - follow changes in the fingerprints
 	 */
 	var _modalCss = __MODAL_CSS;
-	logger.log("_modalCss", _modalCss);
+	if (_modalCss) {
+		addStyle(_modalCss);
+	}
+	//logger.log("_modalCss", _modalCss);
 
 	/**
 	 * store finger print value
@@ -44,8 +47,6 @@ function isReady(callback) {
 	store(_store, "hos", getHostName());
 	var pub = atob(detectPid("[pd-prop]").id);
 	store(_store, "pub", JSON.parse(pub));
-
-	logger.log(ENV);
 
 	/* generate session id */
 	store(_store, "sid", uniqueID());

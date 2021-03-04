@@ -76,7 +76,18 @@
 		<script type="text/javascript">
 			window.pubdefend = window.pubdefend || {};
 			pubdefend.debug = true;
-			!(function (e, f, u, i) {
+
+			(function (d, i) {
+				var pd = d.createElement("script"),
+					s = d.scripts[0];
+				pd.src = "../dist/pubDefend.iife.js";
+				pd.async = true;
+				pd.setAttribute("pd-prop", "eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo");
+				pd.id = i;
+				s.parentNode.insertBefore(pd, s);
+			})(document, "pubdefend");
+
+			/* !(function (e, f, u, i) {
 				if (!document.getElementById(i)) {
 					e.async = 1;
 					e.src = u;
@@ -84,7 +95,7 @@
 					e.setAttribute("pd-prop", "eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo");
 					f.parentNode.insertBefore(e, f);
 				}
-			})(document.createElement("script"), document.getElementsByTagName("script")[0], "../dist/pubDefend.iife.js", "pubdefend");
+			})(document.createElement("script"), document.getElementsByTagName("script")[0], "../dist/pubDefend.iife.js", "pubdefend"); */
 		</script>
 	</body>
 </html>

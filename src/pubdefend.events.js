@@ -102,20 +102,23 @@ export function stateListeners(event) {
 		/* Dev only */
 		saveEventQueue(event.type, event.detail.payload);
 		logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
+		logger.log("pubdefend [publish]::", event.type, event.detail.payload);
 		/* publish message to server */
 		ws.pub(JSON.stringify(getStore(false)));
 	}
 
 	/**
-	 * Check if adblocker active and display modalBox to the user.
+	 * If adblocker active, display modalBox to the user.
+	 *
+	 * TODO:
+	 * Config->dom: update modal element id
+	 * CSS: update modal element id name
 	 *
 	 */
 	if (event.type == config.constants.adblocker && event.detail.payload == "true") {
 		console.log("adblocker active?", event.detail.payload);
-		document.getElementById("overlayAdb").style.display = "block";
-		//overlayAdb
+		document.getElementById(config.dom.modal).style.display = "block";
 	}
-
 	window.removeEventListener(event.type, stateListeners);
 }
 

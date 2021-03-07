@@ -26,42 +26,66 @@ var options = {
 
 function isReady(callback) {
 	/**
-	 *  Browser Fingerprints.
+	 *  Add css style to the document.
+	 * @__MODAL_CSS generated from the bundler
+	 *
 	 *  TODO:
-	 *  - follow changes in the fingerprints
+	 *  - Handle loading html from the bundler
+	 *  - Add modal functions (reload page, instructions how to disable adblock..)
+	 *  - Test on: FF, Chrome, IE, Safari and Edge.
 	 */
 	var _modalCss = __MODAL_CSS;
 	if (_modalCss) {
 		addStyle(_modalCss);
 	}
-	//logger.log("_modalCss", _modalCss);
 
 	/**
-	 * store finger print value
+	 * FingerPrint
+	 * @fp
+	 * - Store generated FingerPrint
+	 * - Watch FingerPrint value
 	 */
 	store(_store, "fip", fp);
 
 	/**
 	 *  publisher properties.
+	 *  @hos Host name
+	 *  @Pub Publisher properties from document
 	 */
 	store(_store, "hos", getHostName());
 	var pub = atob(detectPid("[pd-prop]").id);
 	store(_store, "pub", JSON.parse(pub));
 
-	/* generate session id */
+	/**
+	 * Session ID
+	 * @sid
+	 * - generate session id for uniqe updates on DB
+	 *
+	 */
 	store(_store, "sid", uniqueID());
 
+	/**
+	 * Browser and Platform
+	 * @brw browser
+	 * @mob is mobile device?
+	 */
 	var _browser = detectBrowser();
 	store(_store, "brw", _browser);
-
 	store(_store, "mob", isMobile);
 
+	/** Callback not in use. */
 	if (callback) {
 		callback("Ready");
 	}
 	return "isReady";
 }
 
+/**
+ * Googletag api
+ * call googletagHandler when api Ready
+ * The callback function not in use at the moment.
+ *
+ */
 function gtagApiReady(callback) {
 	var limit = 5;
 	var gtag = window["googletag"];
@@ -118,12 +142,11 @@ if (runningOnBrowser && !isBot) {
 				logger.log("pubdefend [ws Listener]::", event.detail.payload);
 				logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
 				logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-				pd.state[config.constants.ws] = true;
+				logger.log(getStore(true));
 
-				logger.log(getStore());
+				pd.state[config.constants.ws] = true;
 				ws.pub(JSON.stringify(getStore(true)));
 				window.removeEventListener(config.constants.ws, pub);
-				logger.log(getStore(true));
 			});
 		});
 	});

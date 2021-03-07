@@ -10,5 +10,8 @@ export var config = {
 		gtag: "___pd_gt",
 		adblocker: "___pd_ab",
 	},
+	dom: {
+		modal: "overlayAdb",
+	},
 	queue: [],
 };

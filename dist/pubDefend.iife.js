@@ -19,6 +19,9 @@ var pubdefend = (function () {
 	    gtag: "___pd_gt",
 	    adblocker: "___pd_ab"
 	  },
+	  dom: {
+	    modal: "overlayAdb"
+	  },
 	  queue: []
 	};
 
@@ -612,19 +615,24 @@ var pubdefend = (function () {
 	    /* Dev only */
 	    saveEventQueue(event.type, event.detail.payload);
 	    logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
+	    logger.log("pubdefend [publish]::", event.type, event.detail.payload);
 	    /* publish message to server */
 
 	    ws.pub(JSON.stringify(getStore(false)));
 	  }
 	  /**
-	   * Check if adblocker active and display modalBox to the user.
+	   * If adblocker active, display modalBox to the user.
+	   *
+	   * TODO:
+	   * Config->dom: update modal element id
+	   * CSS: update modal element id name
 	   *
 	   */
 
 
 	  if (event.type == config.constants.adblocker && event.detail.payload == "true") {
 	    console.log("adblocker active?", event.detail.payload);
-	    document.getElementById("overlayAdb").style.display = "block"; //overlayAdb
+	    document.getElementById(config.dom.modal).style.display = "block";
 	  }
 
 	  window.removeEventListener(event.type, stateListeners);
@@ -917,37 +925,56 @@ var pubdefend = (function () {
 
 	function isReady(callback) {
 	  /**
-	   *  Browser Fingerprints.
+	   *  Add css style to the document.
+	   * @".abd{position:relative;z-index:1111111111}@media only screen and (max-height:840px){.abd{position:static!important}#overlayAdb{position:absolute!important;background:rgba(0,0,0,.4)}#divAdBlocker{outline:10000px rgba(0,0,0,.4) solid}#pianoBottomBanner{z-index:1}#overlayAdb{height:1000%}#article #menu.fixed{display:none}}#divAdbInst,#scInst1,#scInst2,#scInst3{display:none;background-color:#fff;border-radius:5px 5px}#overlayAdb{position:fixed;height:1000%;width:100%;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.9);display:none;z-index:1000;padding-top:50px}.liIns{cursor:pointer}#divAdbInst{padding:50px 50px}#divAdbInst .nav{position:relative}#divAdBlocker{width:460px;margin:0 auto;text-align:center;background-color:#fff;padding:10px 50px;border-radius:5px 5px;z-index:11111}#divAdBlocker .abMain{margin:58px auto 45px}#divAdBlocker h1{font-family:almoniDL900;font-size:48px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 43px}#divAdBlocker p{font-family:almoniDL400;font-size:18px;font-weight:400;line-height:1.56;letter-spacing:normal;text-align:right;color:#000}#divAdBlocker .btnWr{display:flex;margin:56px auto 22px}#divAdBlocker .btnWr a,.myAB .close{flex:1 1 120px;text-align:center;display:inline-block;font-family:demibold;padding:0 32px;min-width:64px;font-size:18px;height:46px;line-height:46px}#divAdBlocker .btnWr .close,.myAB .close{border:.5px solid #97133f;border:solid .5px var(--btnBgColor);color:#97133f;color:var(--btnBgColor);margin-left:20px}#divAdBlocker .btnWr .buy{border:.5px solid #97133f;background:#97133f;background:var(--btnBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .btnWr a:hover,.myAB .close:hover{background:#700b2d;background:var(--btnHoverBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .ihave{font-family:almoniDL400;font-size:18px;line-height:1.56;text-align:center;color:#000;border-bottom:1px #000 solid;margin:0 auto 22px;display:inline-block}.myAB{width:750px;margin:0 auto 50px;text-align:center}.myAB h2{font-family:almoniDL900;font-size:30px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 50px}.myAB ul{overflow:hidden;border-bottom:1px #cfcfcf solid;margin-bottom:30px}.myAB li{list-style:none;float:right}.myAB .nav li{width:33%;display:inline-block;padding-bottom:10px}.myAB .nav li{font-family:demibold;font-size:18px;font-weight:900;font-style:normal;line-height:135px;letter-spacing:normal;text-align:center;color:#1a1a1a;height:75px}.myAB .Ad1Block{background:url(https://images.globes.co.il/globes/20042020/icon_adblock.png) center 0 no-repeat}.myAB .AdBlockPlus{background:url(https://images.globes.co.il/globes/20042020/icon_adblock_plus.png) center 0 no-repeat}.myAB .uBlock{background:url(https://images.globes.co.il/globes/20042020/icon_ublock.png) center 0 no-repeat}.myAB .main{overflow:hidden;padding:15px 40px 20px}.myAB .main .desrc{float:right;width:65%;text-align:right}.myAB .main h3{margin:-5px 0 0 0;font-family:almoniDL700;font-size:24px;font-style:normal;line-height:36px;color:#1a1a1a}.myAB .desrc ul{margin:20px 0 30px;list-style:decimal;border:0}.myAB .desrc li{font-size:18px;line-height:31px;font-family:almoniDL400;color:#000;margin-right:25px;list-style:decimal;direction:rtl}.myAB .anim{float:left;width:30%}.myAB li span img{width:20px;height:20px;position:relative;top:4px}.myAB li span{margin:0 5px}.slider{position:absolute;bottom:0;left:0;width:33.333%!important;height:2px!important;padding:0!important;background-color:#c00;transition:left .5s}.liIns:nth-child(1).active~.slider{left:66.6666%}.liIns:nth-child(2).active~.slider{left:33.333%}" generated from the bundler
+	   *
 	   *  TODO:
-	   *  - follow changes in the fingerprints
+	   *  - Handle loading html from the bundler
+	   *  - Add modal functions (reload page, instructions how to disable adblock..)
+	   *  - Test on: FF, Chrome, IE, Safari and Edge.
 	   */
 	  var _modalCss = ".abd{position:relative;z-index:1111111111}@media only screen and (max-height:840px){.abd{position:static!important}#overlayAdb{position:absolute!important;background:rgba(0,0,0,.4)}#divAdBlocker{outline:10000px rgba(0,0,0,.4) solid}#pianoBottomBanner{z-index:1}#overlayAdb{height:1000%}#article #menu.fixed{display:none}}#divAdbInst,#scInst1,#scInst2,#scInst3{display:none;background-color:#fff;border-radius:5px 5px}#overlayAdb{position:fixed;height:1000%;width:100%;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.9);display:none;z-index:1000;padding-top:50px}.liIns{cursor:pointer}#divAdbInst{padding:50px 50px}#divAdbInst .nav{position:relative}#divAdBlocker{width:460px;margin:0 auto;text-align:center;background-color:#fff;padding:10px 50px;border-radius:5px 5px;z-index:11111}#divAdBlocker .abMain{margin:58px auto 45px}#divAdBlocker h1{font-family:almoniDL900;font-size:48px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 43px}#divAdBlocker p{font-family:almoniDL400;font-size:18px;font-weight:400;line-height:1.56;letter-spacing:normal;text-align:right;color:#000}#divAdBlocker .btnWr{display:flex;margin:56px auto 22px}#divAdBlocker .btnWr a,.myAB .close{flex:1 1 120px;text-align:center;display:inline-block;font-family:demibold;padding:0 32px;min-width:64px;font-size:18px;height:46px;line-height:46px}#divAdBlocker .btnWr .close,.myAB .close{border:.5px solid #97133f;border:solid .5px var(--btnBgColor);color:#97133f;color:var(--btnBgColor);margin-left:20px}#divAdBlocker .btnWr .buy{border:.5px solid #97133f;background:#97133f;background:var(--btnBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .btnWr a:hover,.myAB .close:hover{background:#700b2d;background:var(--btnHoverBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .ihave{font-family:almoniDL400;font-size:18px;line-height:1.56;text-align:center;color:#000;border-bottom:1px #000 solid;margin:0 auto 22px;display:inline-block}.myAB{width:750px;margin:0 auto 50px;text-align:center}.myAB h2{font-family:almoniDL900;font-size:30px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 50px}.myAB ul{overflow:hidden;border-bottom:1px #cfcfcf solid;margin-bottom:30px}.myAB li{list-style:none;float:right}.myAB .nav li{width:33%;display:inline-block;padding-bottom:10px}.myAB .nav li{font-family:demibold;font-size:18px;font-weight:900;font-style:normal;line-height:135px;letter-spacing:normal;text-align:center;color:#1a1a1a;height:75px}.myAB .Ad1Block{background:url(https://images.globes.co.il/globes/20042020/icon_adblock.png) center 0 no-repeat}.myAB .AdBlockPlus{background:url(https://images.globes.co.il/globes/20042020/icon_adblock_plus.png) center 0 no-repeat}.myAB .uBlock{background:url(https://images.globes.co.il/globes/20042020/icon_ublock.png) center 0 no-repeat}.myAB .main{overflow:hidden;padding:15px 40px 20px}.myAB .main .desrc{float:right;width:65%;text-align:right}.myAB .main h3{margin:-5px 0 0 0;font-family:almoniDL700;font-size:24px;font-style:normal;line-height:36px;color:#1a1a1a}.myAB .desrc ul{margin:20px 0 30px;list-style:decimal;border:0}.myAB .desrc li{font-size:18px;line-height:31px;font-family:almoniDL400;color:#000;margin-right:25px;list-style:decimal;direction:rtl}.myAB .anim{float:left;width:30%}.myAB li span img{width:20px;height:20px;position:relative;top:4px}.myAB li span{margin:0 5px}.slider{position:absolute;bottom:0;left:0;width:33.333%!important;height:2px!important;padding:0!important;background-color:#c00;transition:left .5s}.liIns:nth-child(1).active~.slider{left:66.6666%}.liIns:nth-child(2).active~.slider{left:33.333%}";
 
 	  {
 	    addStyle(_modalCss);
-	  } //logger.log("_modalCss", _modalCss);
-
+	  }
 	  /**
-	   * store finger print value
+	   * FingerPrint
+	   * @fp
+	   * - Store generated FingerPrint
+	   * - Watch FingerPrint value
 	   */
 
 
 	  store(_store$1, "fip", fp);
 	  /**
 	   *  publisher properties.
+	   *  @hos Host name
+	   *  @Pub Publisher properties from document
 	   */
 
 	  store(_store$1, "hos", getHostName());
 	  var pub = atob(detectPid("[pd-prop]").id);
 	  store(_store$1, "pub", JSON.parse(pub));
-	  /* generate session id */
+	  /**
+	   * Session ID
+	   * @sid
+	   * - generate session id for uniqe updates on DB
+	   *
+	   */
 
 	  store(_store$1, "sid", uniqueID());
+	  /**
+	   * Browser and Platform
+	   * @brw browser
+	   * @mob is mobile device?
+	   */
 
 	  var _browser = detectBrowser();
 
 	  store(_store$1, "brw", _browser);
 	  store(_store$1, "mob", isMobile);
+	  /** Callback not in use. */
 
 	  if (callback) {
 	    callback("Ready");
@@ -955,6 +982,13 @@ var pubdefend = (function () {
 
 	  return "isReady";
 	}
+	/**
+	 * Googletag api
+	 * call googletagHandler when api Ready
+	 * The callback function not in use at the moment.
+	 *
+	 */
+
 
 	function gtagApiReady(callback) {
 	  var limit = 5;
@@ -1010,11 +1044,10 @@ var pubdefend = (function () {
 	        logger.log("pubdefend [ws Listener]::", event.detail.payload);
 	        logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
 	        logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	        logger.log(getStore(true));
 	        pd.state[config.constants.ws] = true;
-	        logger.log(getStore());
 	        ws$1.pub(JSON.stringify(getStore(true)));
 	        window.removeEventListener(config.constants.ws, pub);
-	        logger.log(getStore(true));
 	      });
 	    });
 	  });

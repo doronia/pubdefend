@@ -9,7 +9,7 @@ Ad Blocker analytics and recovery solution for Publisher.
 pubdefend.debug = true;
 ```
 
-## Collect Analytics
+## Collect analytics
 ```javascript
 pubdefend.analytics = true;
 ```

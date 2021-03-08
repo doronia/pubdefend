@@ -9,6 +9,7 @@ import { bait } from "./pubdefend.bait";
 import { customEvent, stateListeners, saveEventQueue, store, getStore } from "./pubdefend.events";
 import { MqttClient } from "./pubdefend.mqtt";
 import { addStyle } from "./pubdefend.dom";
+
 /* Polyfills*/
 //import 'core-js/features/promise';
 //Promise.resolve(32).then(x => logger.log(x));
@@ -108,10 +109,12 @@ if (runningOnBrowser && !isBot) {
 	documentReady(function () {
 		logger.log("pubdefend:: init..");
 
-		gtagApiReady(function (res) {
-			res && logger.log("pubdefend [g]::", res);
-		});
-
+		if (pd["analytics"]) {
+			gtagApiReady(function (res) {
+				res && logger.log("pubdefend [g]::", res);
+				var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
+			});
+		}
 		/**
 		 * Load Paho mqtt lib.
 		 * TODO:
@@ -121,7 +124,10 @@ if (runningOnBrowser && !isBot) {
 		isReady(function (status) {
 			logger.log("pubdefend::", status);
 			pd.state[config.constants.ws] = false;
-			/** AD blocker bait  */
+
+			/**
+			 * AD blocker bait
+			 */
 			var testBait = bait(function (res) {
 				if (!res) return;
 				store(_store, "ab", res);
@@ -129,25 +135,32 @@ if (runningOnBrowser && !isBot) {
 				customEvent(config.constants.adblocker, res);
 			});
 
-			logger.log("pubdefend[ws]:: init..");
-			loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-				logger.log("pubdefend [ws]:: ready");
-				ws = new MqttClient();
-			});
-
-			var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
 			var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
 
-			window.addEventListener(config.constants.ws, function pub(event) {
-				logger.log("pubdefend [ws Listener]::", event.detail.payload);
-				logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-				logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-				logger.log(getStore(true));
+			/**
+			 * Send analytics to server
+			 *
+			 */
 
-				pd.state[config.constants.ws] = true;
-				ws.pub(JSON.stringify(getStore(true)));
-				window.removeEventListener(config.constants.ws, pub);
-			});
+			if (pd["analytics"]) {
+				logger.log("pubdefend:: analytics enabled");
+				logger.log("pubdefend[ws]:: init..");
+				loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
+					logger.log("pubdefend [ws]:: ready");
+					ws = new MqttClient();
+				});
+
+				window.addEventListener(config.constants.ws, function pub(event) {
+					logger.log("pubdefend [ws Listener]::", event.detail.payload);
+					logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+					logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+					logger.log(getStore(true));
+
+					pd.state[config.constants.ws] = true;
+					ws.pub(JSON.stringify(getStore(true)));
+					window.removeEventListener(config.constants.ws, pub);
+				});
+			}
 		});
 	});
 }

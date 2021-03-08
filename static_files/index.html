@@ -4,7 +4,6 @@
 		<meta charset="utf-8" />
 		<link rel="shortcut icon" href="https://www.sponser.co.il/favicon.ico" type="image/x-icon" />
 		<link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
-		<!--link href="styleadb.css" rel="stylesheet" type="text/css" /-->
 
 		<!-- Start GPT Tag -->
 		<script async src="https://securepubads.g.doubleclick.net/tag/js/gpt.js"></script>
@@ -76,11 +75,12 @@
 		<script type="text/javascript">
 			window.pubdefend = window.pubdefend || {};
 			pubdefend.debug = true;
+			pubdefend.analytics = true;
 
 			(function (d, i) {
 				var pd = d.createElement("script"),
 					s = d.scripts[0];
-				pd.src = "../dist/pubDefend.iife.js";
+				pd.src = "../dist/pubDefend.iife.min.js";
 				pd.async = true;
 				pd.setAttribute("pd-prop", "eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo");
 				pd.id = i;

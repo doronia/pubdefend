@@ -502,39 +502,6 @@ var pubdefend = (function () {
 	}
 
 	var _eventQueue = pd.eventQueue;
-	/* 
-	import Cookies from "./pubdefend.cookies";
-
-	export const setCookie = function (name, value, ttl) {
-		Cookies.set(name, value, ttl, config.cookieDomain || config.endpoints.base);
-	};
-
-	export const getCookie = function (name) {
-		return Cookies.get(name);
-	};
-
-	export const destroyCookie = function (name) {
-		Cookies.set(name, "", -1);
-	};
-
-	export const saveEventQueue = function (eventQueue) {
-		if (canStringify) {
-			setCookie(config.cookieName, JSON.stringify(eventQueue), 60);
-		}
-	};
-	 */
-
-	/* export function addEventListener(element, eventType, eventHandler, useCapture) {
-		if (element.addEventListener) {
-			element.addEventListener(eventType, eventHandler, useCapture);
-			return true;
-		}
-		if (element.attachEvent) {
-			return element.attachEvent(eventType, eventHandler);
-		}
-		element["on" + eventType] = eventHandler;
-	} */
-
 	function saveEventQueue(eventName, data) {
 	  if (!eventName || !data) return;
 	  _eventQueue[eventName] = data;
@@ -610,14 +577,21 @@ var pubdefend = (function () {
 	  if (!event.type) return;
 	  logger.log("pubdefend [" + event.type + " Listener]:: ws", pd.state[config.constants.ws]);
 	  pd.state[event.type] = true;
+	  /**
+	   * Send data if WS was ready before the event was fire
+	   */
 
 	  if (pd.state[config.constants.ws]) {
-	    /* Dev only */
+	    /**
+	     * Dev only
+	     */
 	    saveEventQueue(event.type, event.detail.payload);
+	    /**
+	     * publish message to server
+	     */
+
 	    logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
 	    logger.log("pubdefend [publish]::", event.type, event.detail.payload);
-	    /* publish message to server */
-
 	    ws.pub(JSON.stringify(getStore(false)));
 	  }
 	  /**
@@ -634,23 +608,13 @@ var pubdefend = (function () {
 	    console.log("adblocker active?", event.detail.payload);
 	    document.getElementById(config.dom.modal).style.display = "block";
 	  }
+	  /**
+	   * Remove listener after dispatchEvent
+	   */
+
 
 	  window.removeEventListener(event.type, stateListeners);
 	}
-	/*
-	// Dev only
-	export function testcookie() {
-		var _obj = {};
-		var arr = Cookies.get(config.cookieName);
-		var storeItems = JSON.parse(arr);
-
-		for (let item in storeItems) {
-			_obj[storeItems[item].prop] = storeItems[item].val;
-		}
-		console.log(_obj);
-		console.log(btoa(_obj));
-	}
-	*/
 
 	var domQuery = {
 	  htmlCollectionToArray: function htmlCollectionToArray(foundNodes) {
@@ -1012,9 +976,13 @@ var pubdefend = (function () {
 	  log(pd.debug);
 	  documentReady(function () {
 	    logger.log("pubdefend:: init..");
-	    gtagApiReady(function (res) {
-	      res && logger.log("pubdefend [g]::", res);
-	    });
+
+	    if (pd["analytics"]) {
+	      gtagApiReady(function (res) {
+	        res && logger.log("pubdefend [g]::", res);
+	        var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
+	      });
+	    }
 	    /**
 	     * Load Paho mqtt lib.
 	     * TODO:
@@ -1022,10 +990,13 @@ var pubdefend = (function () {
 	     * - create instance of Paho class and raise event to start websocket connection and send method
 	     */
 
+
 	    isReady(function (status) {
 	      logger.log("pubdefend::", status);
 	      pd.state[config.constants.ws] = false;
-	      /** AD blocker bait  */
+	      /**
+	       * AD blocker bait
+	       */
 
 	      var testBait = bait(function (res) {
 	        if (!res) return;
@@ -1033,22 +1004,29 @@ var pubdefend = (function () {
 	        pd.state[config.constants.adblocker] = true;
 	        customEvent(config.constants.adblocker, res);
 	      });
-	      logger.log("pubdefend[ws]:: init..");
-	      loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-	        logger.log("pubdefend [ws]:: ready");
-	        ws$1 = new MqttClient();
-	      });
-	      var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
 	      var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
-	      window.addEventListener(config.constants.ws, function pub(event) {
-	        logger.log("pubdefend [ws Listener]::", event.detail.payload);
-	        logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-	        logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-	        logger.log(getStore(true));
-	        pd.state[config.constants.ws] = true;
-	        ws$1.pub(JSON.stringify(getStore(true)));
-	        window.removeEventListener(config.constants.ws, pub);
-	      });
+	      /**
+	       * Send analytics to server
+	       *
+	       */
+
+	      if (pd["analytics"]) {
+	        logger.log("pubdefend:: analytics enabled");
+	        logger.log("pubdefend[ws]:: init..");
+	        loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
+	          logger.log("pubdefend [ws]:: ready");
+	          ws$1 = new MqttClient();
+	        });
+	        window.addEventListener(config.constants.ws, function pub(event) {
+	          logger.log("pubdefend [ws Listener]::", event.detail.payload);
+	          logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	          logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	          logger.log(getStore(true));
+	          pd.state[config.constants.ws] = true;
+	          ws$1.pub(JSON.stringify(getStore(true)));
+	          window.removeEventListener(config.constants.ws, pub);
+	        });
+	      }
 	    });
 	  });
 	}

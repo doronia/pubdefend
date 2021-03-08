@@ -5,39 +5,6 @@ import { entries } from "./pubdefend.polyfills";
 import { appendLog } from "./pubdefend.logs";
 var _eventQueue = pd.eventQueue;
 
-/* 
-import Cookies from "./pubdefend.cookies";
-
-export const setCookie = function (name, value, ttl) {
-	Cookies.set(name, value, ttl, config.cookieDomain || config.endpoints.base);
-};
-
-export const getCookie = function (name) {
-	return Cookies.get(name);
-};
-
-export const destroyCookie = function (name) {
-	Cookies.set(name, "", -1);
-};
-
-export const saveEventQueue = function (eventQueue) {
-	if (canStringify) {
-		setCookie(config.cookieName, JSON.stringify(eventQueue), 60);
-	}
-};
- */
-
-/* export function addEventListener(element, eventType, eventHandler, useCapture) {
-	if (element.addEventListener) {
-		element.addEventListener(eventType, eventHandler, useCapture);
-		return true;
-	}
-	if (element.attachEvent) {
-		return element.attachEvent(eventType, eventHandler);
-	}
-	element["on" + eventType] = eventHandler;
-} */
-
 export function saveEventQueue(eventName, data) {
 	if (!eventName || !data) return;
 
@@ -98,12 +65,20 @@ export function stateListeners(event) {
 
 	pd.state[event.type] = true;
 
+	/**
+	 * Send data if WS was ready before the event was fire
+	 */
 	if (pd.state[config.constants.ws]) {
-		/* Dev only */
+		/**
+		 * Dev only
+		 */
 		saveEventQueue(event.type, event.detail.payload);
+
+		/**
+		 * publish message to server
+		 */
 		logger.log("pubdefend [EventQueue]::", event.type, event.detail.payload);
 		logger.log("pubdefend [publish]::", event.type, event.detail.payload);
-		/* publish message to server */
 		ws.pub(JSON.stringify(getStore(false)));
 	}
 
@@ -119,20 +94,9 @@ export function stateListeners(event) {
 		console.log("adblocker active?", event.detail.payload);
 		document.getElementById(config.dom.modal).style.display = "block";
 	}
+
+	/**
+	 * Remove listener after dispatchEvent
+	 */
 	window.removeEventListener(event.type, stateListeners);
 }
-
-/*
-// Dev only
-export function testcookie() {
-	var _obj = {};
-	var arr = Cookies.get(config.cookieName);
-	var storeItems = JSON.parse(arr);
-
-	for (let item in storeItems) {
-		_obj[storeItems[item].prop] = storeItems[item].val;
-	}
-	console.log(_obj);
-	console.log(btoa(_obj));
-}
-*/

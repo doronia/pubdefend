@@ -6,13 +6,9 @@ import { documentReady, loadScript, detectPid, getHostName, uniqueID } from "./p
 import { googletagHandler } from "./pubdefend.google";
 import { fp } from "./pubdefend.fingerprint";
 import { bait } from "./pubdefend.bait";
-import { customEvent, stateListeners, saveEventQueue, store, getStore } from "./pubdefend.events";
+import { customEvent, stateListeners, store, getStore } from "./pubdefend.events";
 import { MqttClient } from "./pubdefend.mqtt";
 import { addStyle } from "./pubdefend.dom";
-
-/* Polyfills*/
-//import 'core-js/features/promise';
-//Promise.resolve(32).then(x => logger.log(x));
 
 pd.getStore = getStore;
 
@@ -115,12 +111,7 @@ if (runningOnBrowser && !isBot) {
 				var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
 			});
 		}
-		/**
-		 * Load Paho mqtt lib.
-		 * TODO:
-		 * - upload mqttws31.min.js to CDN & change loadScript path with {config endpoints}
-		 * - create instance of Paho class and raise event to start websocket connection and send method
-		 */
+
 		isReady(function (status) {
 			logger.log("pubdefend::", status);
 			pd.state[config.constants.ws] = false;

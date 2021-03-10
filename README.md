@@ -8,3 +8,8 @@ Ad Blocker analytics and recovery solution for Publisher.
 ```javascript
 pubdefend.debug = true;
 ```
+
+## Collect analytics
+```javascript
+pubdefend.analytics = true;
+```

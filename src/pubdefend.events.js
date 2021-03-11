@@ -61,7 +61,7 @@ export function stateListeners(event) {
 	 TODO: handle ws publish if not connected.
 	 */
 	if (!event.type) return;
-	logger.log("pubdefend [" + event.type + " Listener]:: ws", pd.state[config.constants.ws]);
+	logger.log("[" + event.type + " Listener] ws", pd.state[config.constants.ws]);
 
 	pd.state[event.type] = true;
 

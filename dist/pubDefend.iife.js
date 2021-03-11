@@ -25,13 +25,21 @@ var pubdefend = (function () {
 	  queue: []
 	};
 
+	/**
+	 * Console.log wrapper on/off
+	 * @param {boolean} isDebug
+	 */
 	function log(isDebug) {
 	  if (isDebug && window.console && typeof console.log === "function") {
 	    window.logger = {
-	      log: window.console.log.bind(console.log)
+	      log: window.console.log.bind(window.console, "pubdefend:: %s")
 	    };
 	  } else {
-	    window.logger = function () {};
+	    var __no_op = function __no_op() {};
+
+	    window.logger = {
+	      log: __no_op
+	    };
 	  }
 	}
 
@@ -407,6 +415,12 @@ var pubdefend = (function () {
 	var isObject = function isObject(val) {
 	  return _typeof(val) === "object" && exists(val) && !Array.isArray(val) && !(val instanceof RegExp) && !(val instanceof String) && !(val instanceof Number);
 	};
+	/**
+	 *
+	 * @param {string} src
+	 * @param {callback} onLoad
+	 */
+
 	function loadScript(src, onLoad) {
 	  var script = document.createElement("script");
 	  script.type = "text/javascript";
@@ -575,7 +589,7 @@ var pubdefend = (function () {
 	   TODO: handle ws publish if not connected.
 	   */
 	  if (!event.type) return;
-	  logger.log("pubdefend [" + event.type + " Listener]:: ws", pd.state[config.constants.ws]);
+	  logger.log("[" + event.type + " Listener] ws", pd.state[config.constants.ws]);
 	  pd.state[event.type] = true;
 	  /**
 	   * Send data if WS was ready before the event was fire
@@ -714,7 +728,7 @@ var pubdefend = (function () {
 
 	  solts_req = Slots();
 	  store(_store, "gds", solts_req.length);
-	  logger.log("pubdefend [g]:: slots count:", solts_req);
+	  logger.log("[g] slots count:", solts_req);
 	  window["googletag"].pubads().addEventListener("slotRenderEnded", listenForSlots, false);
 
 	  if (callback) {
@@ -735,7 +749,7 @@ var pubdefend = (function () {
 	    2: event.isEmpty,
 	    3: event.size
 	  });
-	  logger.log("pubdefend [g]:: Slot", slot.getSlotElementId(), "finished rendering.");
+	  logger.log("[g] Slot", slot.getSlotElementId(), "finished rendering.");
 
 	  if (!rendered) {
 	    var FindElements = domQuery.find('div[id*="google_ad"]');
@@ -873,27 +887,32 @@ var pubdefend = (function () {
 	    }
 
 	    self.client.send(message);
-	    logger.log("pubdefend [ws]:: published");
+	    logger.log("[ws] published");
 	  };
 
 	  return self;
 	}
 
-	/* Polyfills*/
-	//import 'core-js/features/promise';
-	//Promise.resolve(32).then(x => logger.log(x));
-
 	pd.getStore = getStore;
 	var ws$1;
 	var _store$1 = pd.store;
+	/**
+	 * Options for  
+	 *
+	 var options = {
+		D: ["id=~google_ad", "id=~gpt-ad", "tag=iframe;src=~safeframe", "tag=ins;cl=~dcmads"],
+		W: [".banner_slot", ".postad"],
+		V: "advertisement",
+	 };
+	*/
 
 	function isReady(callback) {
 	  /**
-	   *  Add css style to the document.
-	   * @".abd{position:relative;z-index:1111111111}@media only screen and (max-height:840px){.abd{position:static!important}#overlayAdb{position:absolute!important;background:rgba(0,0,0,.4)}#divAdBlocker{outline:10000px rgba(0,0,0,.4) solid}#pianoBottomBanner{z-index:1}#overlayAdb{height:1000%}#article #menu.fixed{display:none}}#divAdbInst,#scInst1,#scInst2,#scInst3{display:none;background-color:#fff;border-radius:5px 5px}#overlayAdb{position:fixed;height:1000%;width:100%;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.9);display:none;z-index:1000;padding-top:50px}.liIns{cursor:pointer}#divAdbInst{padding:50px 50px}#divAdbInst .nav{position:relative}#divAdBlocker{width:460px;margin:0 auto;text-align:center;background-color:#fff;padding:10px 50px;border-radius:5px 5px;z-index:11111}#divAdBlocker .abMain{margin:58px auto 45px}#divAdBlocker h1{font-family:almoniDL900;font-size:48px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 43px}#divAdBlocker p{font-family:almoniDL400;font-size:18px;font-weight:400;line-height:1.56;letter-spacing:normal;text-align:right;color:#000}#divAdBlocker .btnWr{display:flex;margin:56px auto 22px}#divAdBlocker .btnWr a,.myAB .close{flex:1 1 120px;text-align:center;display:inline-block;font-family:demibold;padding:0 32px;min-width:64px;font-size:18px;height:46px;line-height:46px}#divAdBlocker .btnWr .close,.myAB .close{border:.5px solid #97133f;border:solid .5px var(--btnBgColor);color:#97133f;color:var(--btnBgColor);margin-left:20px}#divAdBlocker .btnWr .buy{border:.5px solid #97133f;background:#97133f;background:var(--btnBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .btnWr a:hover,.myAB .close:hover{background:#700b2d;background:var(--btnHoverBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .ihave{font-family:almoniDL400;font-size:18px;line-height:1.56;text-align:center;color:#000;border-bottom:1px #000 solid;margin:0 auto 22px;display:inline-block}.myAB{width:750px;margin:0 auto 50px;text-align:center}.myAB h2{font-family:almoniDL900;font-size:30px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 50px}.myAB ul{overflow:hidden;border-bottom:1px #cfcfcf solid;margin-bottom:30px}.myAB li{list-style:none;float:right}.myAB .nav li{width:33%;display:inline-block;padding-bottom:10px}.myAB .nav li{font-family:demibold;font-size:18px;font-weight:900;font-style:normal;line-height:135px;letter-spacing:normal;text-align:center;color:#1a1a1a;height:75px}.myAB .Ad1Block{background:url(https://images.globes.co.il/globes/20042020/icon_adblock.png) center 0 no-repeat}.myAB .AdBlockPlus{background:url(https://images.globes.co.il/globes/20042020/icon_adblock_plus.png) center 0 no-repeat}.myAB .uBlock{background:url(https://images.globes.co.il/globes/20042020/icon_ublock.png) center 0 no-repeat}.myAB .main{overflow:hidden;padding:15px 40px 20px}.myAB .main .desrc{float:right;width:65%;text-align:right}.myAB .main h3{margin:-5px 0 0 0;font-family:almoniDL700;font-size:24px;font-style:normal;line-height:36px;color:#1a1a1a}.myAB .desrc ul{margin:20px 0 30px;list-style:decimal;border:0}.myAB .desrc li{font-size:18px;line-height:31px;font-family:almoniDL400;color:#000;margin-right:25px;list-style:decimal;direction:rtl}.myAB .anim{float:left;width:30%}.myAB li span img{width:20px;height:20px;position:relative;top:4px}.myAB li span{margin:0 5px}.slider{position:absolute;bottom:0;left:0;width:33.333%!important;height:2px!important;padding:0!important;background-color:#c00;transition:left .5s}.liIns:nth-child(1).active~.slider{left:66.6666%}.liIns:nth-child(2).active~.slider{left:33.333%}" generated from the bundler
+	   * Add css style to the document.
+	   * ".abd{position:relative;z-index:1111111111}@media only screen and (max-height:840px){.abd{position:static!important}#overlayAdb{position:absolute!important;background:rgba(0,0,0,.4)}#divAdBlocker{outline:10000px rgba(0,0,0,.4) solid}#pianoBottomBanner{z-index:1}#overlayAdb{height:1000%}#article #menu.fixed{display:none}}#divAdbInst,#scInst1,#scInst2,#scInst3{display:none;background-color:#fff;border-radius:5px 5px}#overlayAdb{position:fixed;height:1000%;width:100%;top:0;right:0;bottom:0;left:0;background:rgba(0,0,0,.9);display:none;z-index:1000;padding-top:50px}.liIns{cursor:pointer}#divAdbInst{padding:50px 50px}#divAdbInst .nav{position:relative}#divAdBlocker{width:460px;margin:0 auto;text-align:center;background-color:#fff;padding:10px 50px;border-radius:5px 5px;z-index:11111}#divAdBlocker .abMain{margin:58px auto 45px}#divAdBlocker h1{font-family:almoniDL900;font-size:48px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 43px}#divAdBlocker p{font-family:almoniDL400;font-size:18px;font-weight:400;line-height:1.56;letter-spacing:normal;text-align:right;color:#000}#divAdBlocker .btnWr{display:flex;margin:56px auto 22px}#divAdBlocker .btnWr a,.myAB .close{flex:1 1 120px;text-align:center;display:inline-block;font-family:demibold;padding:0 32px;min-width:64px;font-size:18px;height:46px;line-height:46px}#divAdBlocker .btnWr .close,.myAB .close{border:.5px solid #97133f;border:solid .5px var(--btnBgColor);color:#97133f;color:var(--btnBgColor);margin-left:20px}#divAdBlocker .btnWr .buy{border:.5px solid #97133f;background:#97133f;background:var(--btnBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .btnWr a:hover,.myAB .close:hover{background:#700b2d;background:var(--btnHoverBgColor);color:#fff;color:var(--primaryNegativeTxtColor)}#divAdBlocker .ihave{font-family:almoniDL400;font-size:18px;line-height:1.56;text-align:center;color:#000;border-bottom:1px #000 solid;margin:0 auto 22px;display:inline-block}.myAB{width:750px;margin:0 auto 50px;text-align:center}.myAB h2{font-family:almoniDL900;font-size:30px;font-weight:900;font-style:normal;line-height:1;letter-spacing:normal;text-align:center;color:#1a1a1a;margin:0 auto 50px}.myAB ul{overflow:hidden;border-bottom:1px #cfcfcf solid;margin-bottom:30px}.myAB li{list-style:none;float:right}.myAB .nav li{width:33%;display:inline-block;padding-bottom:10px}.myAB .nav li{font-family:demibold;font-size:18px;font-weight:900;font-style:normal;line-height:135px;letter-spacing:normal;text-align:center;color:#1a1a1a;height:75px}.myAB .Ad1Block{background:url(https://images.globes.co.il/globes/20042020/icon_adblock.png) center 0 no-repeat}.myAB .AdBlockPlus{background:url(https://images.globes.co.il/globes/20042020/icon_adblock_plus.png) center 0 no-repeat}.myAB .uBlock{background:url(https://images.globes.co.il/globes/20042020/icon_ublock.png) center 0 no-repeat}.myAB .main{overflow:hidden;padding:15px 40px 20px}.myAB .main .desrc{float:right;width:65%;text-align:right}.myAB .main h3{margin:-5px 0 0 0;font-family:almoniDL700;font-size:24px;font-style:normal;line-height:36px;color:#1a1a1a}.myAB .desrc ul{margin:20px 0 30px;list-style:decimal;border:0}.myAB .desrc li{font-size:18px;line-height:31px;font-family:almoniDL400;color:#000;margin-right:25px;list-style:decimal;direction:rtl}.myAB .anim{float:left;width:30%}.myAB li span img{width:20px;height:20px;position:relative;top:4px}.myAB li span{margin:0 5px}.slider{position:absolute;bottom:0;left:0;width:33.333%!important;height:2px!important;padding:0!important;background-color:#c00;transition:left .5s}.liIns:nth-child(1).active~.slider{left:66.6666%}.liIns:nth-child(2).active~.slider{left:33.333%}" generated from the bundler
 	   *
 	   *  TODO:
-	   *  - Handle loading html from the bundler
+	   *  - Handle loading html template from the bundler
 	   *  - Add modal functions (reload page, instructions how to disable adblock..)
 	   *  - Test on: FF, Chrome, IE, Safari and Edge.
 	   */
@@ -904,7 +923,6 @@ var pubdefend = (function () {
 	  }
 	  /**
 	   * FingerPrint
-	   * @fp
 	   * - Store generated FingerPrint
 	   * - Watch FingerPrint value
 	   */
@@ -959,7 +977,7 @@ var pubdefend = (function () {
 	  var gtag = window["googletag"];
 	  var apiReady = setInterval(function () {
 	    if (gtag && gtag["apiReady"]) {
-	      logger.log("pubdefend [g]:: Ready (#" + limit + ")");
+	      logger.log("[g] Ready (#" + limit + ")");
 	      clearInterval(apiReady);
 	      googletagHandler(callback);
 	    }
@@ -975,24 +993,19 @@ var pubdefend = (function () {
 	if (runningOnBrowser && !isBot) {
 	  log(pd.debug);
 	  documentReady(function () {
-	    logger.log("pubdefend:: init..");
-
+	    /**
+	     * google tag handler
+	     * execute and store data if analytics is enabled.
+	     */
 	    if (pd["analytics"]) {
 	      gtagApiReady(function (res) {
-	        res && logger.log("pubdefend [g]::", res);
+	        res && logger.log("[g]", res);
 	        var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
 	      });
 	    }
-	    /**
-	     * Load Paho mqtt lib.
-	     * TODO:
-	     * - upload mqttws31.min.js to CDN & change loadScript path with {config endpoints}
-	     * - create instance of Paho class and raise event to start websocket connection and send method
-	     */
-
 
 	    isReady(function (status) {
-	      logger.log("pubdefend::", status);
+	      logger.log(status);
 	      pd.state[config.constants.ws] = false;
 	      /**
 	       * AD blocker bait
@@ -1000,28 +1013,34 @@ var pubdefend = (function () {
 
 	      var testBait = bait(function (res) {
 	        if (!res) return;
-	        store(_store$1, "ab", res);
-	        pd.state[config.constants.adblocker] = true;
-	        customEvent(config.constants.adblocker, res);
+	        store(_store$1, "ab", res); //Store value
+
+	        pd.state[config.constants.adblocker] = true; // Update state
+
+	        customEvent(config.constants.adblocker, res); // Dispatch the event
 	      });
-	      var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
+	      var onAb = window.addEventListener(config.constants.adblocker, stateListeners); //Listen to Event
+
 	      /**
-	       * Send analytics to server
-	       *
+	       * Send analytics
+	       * - Load paho mqtt lib
+	       * - Create mqtt instance
+	       * - Publish data when mqtt is ready
 	       */
 
 	      if (pd["analytics"]) {
-	        logger.log("pubdefend:: analytics enabled");
-	        logger.log("pubdefend[ws]:: init..");
+	        logger.log("Analytics enabled");
+	        logger.log("[ws] init..");
 	        loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-	          logger.log("pubdefend [ws]:: ready");
+	          logger.log("[ws] ready");
 	          ws$1 = new MqttClient();
 	        });
+	        document.getElementById("template-literals").innerHTML = "Analytics: ".concat(pd.analytics);
 	        window.addEventListener(config.constants.ws, function pub(event) {
-	          logger.log("pubdefend [ws Listener]::", event.detail.payload);
-	          logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-	          logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-	          logger.log(getStore(true));
+	          logger.log("[ws Listener]", event.detail.payload);
+	          logger.log("[ws state]", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+	          logger.log("[ws state]", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+	          logger.log("Store", getStore());
 	          pd.state[config.constants.ws] = true;
 	          ws$1.pub(JSON.stringify(getStore(true)));
 	          window.removeEventListener(config.constants.ws, pub);

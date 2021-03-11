@@ -1,9 +1,7 @@
 import { pd } from "./pubdefend.init";
 import { config } from "./pubdefend.config";
-
 import { store } from "./pubdefend.events";
 import { domQuery, checkIfVisible } from "./pubdefend.dom";
-import { isArray } from "./pubdefend.polyfills";
 import { customEvent } from "./pubdefend.events";
 
 var _store = pd.store;
@@ -26,7 +24,7 @@ export function googletagHandler(callback) {
 	solts_req = Slots();
 
 	store(_store, "gds", solts_req.length);
-	logger.log("pubdefend [g]:: slots count:", solts_req);
+	logger.log("[g] slots count:", solts_req);
 
 	window["googletag"].pubads().addEventListener("slotRenderEnded", listenForSlots, false);
 
@@ -44,7 +42,7 @@ function listenForSlots(event) {
 	var slotIsVisible = checkIfVisible(slotElm);
 	solts_arr[slotId] = { 0: true, 1: slotIsVisible, 2: event.isEmpty, 3: event.size };
 
-	logger.log("pubdefend [g]:: Slot", slot.getSlotElementId(), "finished rendering.");
+	logger.log("[g] Slot", slot.getSlotElementId(), "finished rendering.");
 
 	if (!rendered) {
 		var FindElements = domQuery.find('div[id*="google_ad"]');

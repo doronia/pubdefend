@@ -57,6 +57,11 @@ export const getIframeContent = function (frameId) {
 	return frameContent;
 };
 
+/**
+ *
+ * @param {string} src
+ * @param {callback} onLoad
+ */
 export function loadScript(src, onLoad) {
 	var script = document.createElement("script");
 	script.type = "text/javascript";

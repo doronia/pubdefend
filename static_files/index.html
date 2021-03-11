@@ -29,6 +29,7 @@
 					<h2 class="sm:text-lg sm:leading-snug font-semibold tracking-wide uppercase mb-1" style="color: #99b8fd">Dev page</h2>
 					<p class="text-3xl sm:text-5xl lg:text-6xl leading-none font-extrabold tracking-tight mb-2" style="color: #ffffff">PubDefend</p>
 					<p class="max-w-4xl text-lg sm:text-2xl font-medium sm:leading-10 space-y-4 mb-4" style="color: #99b8fd">Ad Blocker recovery solution for Publisher</p>
+					<p id="template-literals" class="max-w-4xl text-lg sm:text-2xl font-medium sm:leading-10 space-y-4 mb-4" style="color: #99b8fd"></p>
 				</div>
 			</section>
 			<section>
@@ -80,7 +81,7 @@
 			(function (d, i) {
 				var pd = d.createElement("script"),
 					s = d.scripts[0];
-				pd.src = "../dist/pubDefend.iife.min.js";
+				pd.src = "../dist/pubDefend.iife.js";
 				pd.async = true;
 				pd.setAttribute("pd-prop", "eyJvcmciOiJzcG9uc2VyLmNvLmlsIiwicHJvcCI6InNwb25zZXIuY28uaWwifQo");
 				pd.id = i;

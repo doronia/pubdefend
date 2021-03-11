@@ -103,7 +103,7 @@ export function MqttClient() {
 			setTimeout(callback);
 		}
 		self.client.send(message);
-		logger.log("pubdefend [ws]:: published");
+		logger.log("[ws] published");
 	};
 
 	return self;

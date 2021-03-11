@@ -15,19 +15,23 @@ pd.getStore = getStore;
 var ws;
 var _store = pd.store;
 
-var options = {
+/**
+ * Options for  
+ *
+ var options = {
 	D: ["id=~google_ad", "id=~gpt-ad", "tag=iframe;src=~safeframe", "tag=ins;cl=~dcmads"],
 	W: [".banner_slot", ".postad"],
 	V: "advertisement",
-};
+ };
+*/
 
 function isReady(callback) {
 	/**
-	 *  Add css style to the document.
-	 * @__MODAL_CSS generated from the bundler
+	 * Add css style to the document.
+	 * __MODAL_CSS generated from the bundler
 	 *
 	 *  TODO:
-	 *  - Handle loading html from the bundler
+	 *  - Handle loading html template from the bundler
 	 *  - Add modal functions (reload page, instructions how to disable adblock..)
 	 *  - Test on: FF, Chrome, IE, Safari and Edge.
 	 */
@@ -38,7 +42,6 @@ function isReady(callback) {
 
 	/**
 	 * FingerPrint
-	 * @fp
 	 * - Store generated FingerPrint
 	 * - Watch FingerPrint value
 	 */
@@ -88,7 +91,7 @@ function gtagApiReady(callback) {
 	var gtag = window["googletag"];
 	var apiReady = setInterval(function () {
 		if (gtag && gtag["apiReady"]) {
-			logger.log("pubdefend [g]:: Ready (#" + limit + ")");
+			logger.log("[g] Ready (#" + limit + ")");
 			clearInterval(apiReady);
 			googletagHandler(callback);
 		}
@@ -101,19 +104,20 @@ function gtagApiReady(callback) {
 
 if (runningOnBrowser && !isBot) {
 	log(pd.debug);
-
 	documentReady(function () {
-		logger.log("pubdefend:: init..");
-
+		/**
+		 * google tag handler
+		 * execute and store data if analytics is enabled.
+		 */
 		if (pd["analytics"]) {
 			gtagApiReady(function (res) {
-				res && logger.log("pubdefend [g]::", res);
+				res && logger.log("[g]", res);
 				var onImpr = window.addEventListener(config.constants.gtag, stateListeners);
 			});
 		}
 
 		isReady(function (status) {
-			logger.log("pubdefend::", status);
+			logger.log(status);
 			pd.state[config.constants.ws] = false;
 
 			/**
@@ -121,31 +125,34 @@ if (runningOnBrowser && !isBot) {
 			 */
 			var testBait = bait(function (res) {
 				if (!res) return;
-				store(_store, "ab", res);
-				pd.state[config.constants.adblocker] = true;
-				customEvent(config.constants.adblocker, res);
+				store(_store, "ab", res); //Store value
+				pd.state[config.constants.adblocker] = true; // Update state
+				customEvent(config.constants.adblocker, res); // Dispatch the event
 			});
 
-			var onAb = window.addEventListener(config.constants.adblocker, stateListeners);
+			var onAb = window.addEventListener(config.constants.adblocker, stateListeners); //Listen to Event
 
 			/**
-			 * Send analytics to server
-			 *
+			 * Send analytics
+			 * - Load paho mqtt lib
+			 * - Create mqtt instance
+			 * - Publish data when mqtt is ready
 			 */
-
 			if (pd["analytics"]) {
-				logger.log("pubdefend:: analytics enabled");
-				logger.log("pubdefend[ws]:: init..");
+				logger.log("Analytics enabled");
+				logger.log("[ws] init..");
 				loadScript("https://" + config.endpoints.cdn + "." + config.endpoints.base + "/js/mqttws31.min.js", function () {
-					logger.log("pubdefend [ws]:: ready");
+					logger.log("[ws] ready");
 					ws = new MqttClient();
 				});
 
+				document.getElementById("template-literals").innerHTML = `Analytics: ${pd.analytics}`;
+
 				window.addEventListener(config.constants.ws, function pub(event) {
-					logger.log("pubdefend [ws Listener]::", event.detail.payload);
-					logger.log("pubdefend [ws state]::", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
-					logger.log("pubdefend [ws state]::", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
-					logger.log(getStore(true));
+					logger.log("[ws Listener]", event.detail.payload);
+					logger.log("[ws state]", config.constants.gtag, "isReady?", pd.state.hasOwnProperty(config.constants.gtag));
+					logger.log("[ws state]", config.constants.adblocker, "isReady?", pd.state.hasOwnProperty(config.constants.adblocker));
+					logger.log("Store", getStore());
 
 					pd.state[config.constants.ws] = true;
 					ws.pub(JSON.stringify(getStore(true)));

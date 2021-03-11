@@ -1,12 +1,9 @@
-//import https from "https";
-//const fetch = require("node-fetch");
 import { terser } from "rollup-plugin-terser";
 import resolve from "@rollup/plugin-node-resolve";
 import babel from "rollup-plugin-babel";
 import commonjs from "@rollup/plugin-commonjs";
 import replace from "rollup-plugin-replace";
 import banner from "rollup-plugin-banner";
-
 import { encode } from "universal-base64url";
 
 const { NODE_ENV = "development", DOMAIN = "" } = process.env;
@@ -149,6 +146,14 @@ export default (async () => ({
 		resolve({
 			browser: true,
 		}),
+		[
+			[
+				"@babel/plugin-transform-template-literals",
+				{
+					loose: true,
+				},
+			],
+		],
 		babel({
 			exclude: "node_modules/**",
 			babelrc: false,
